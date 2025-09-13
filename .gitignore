@@ -1,0 +1,13 @@
+node_modules/
+.env
+*.DS_Store*
+
+.firebase/
+build/
+
+# Compiled JavaScript files
+build/**/*.js
+build/**/*.js.map
+
+# TypeScript v1 declaration files
+typings/

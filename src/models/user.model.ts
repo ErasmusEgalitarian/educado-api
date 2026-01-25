@@ -1,13 +1,35 @@
-import { Schema, model } from 'mongoose'
-import { IUser } from '../types/user-types/user'
+import { DataTypes, Model } from 'sequelize'
+import { sequelize } from '../config/database'
 
-const userSchema = new Schema<IUser>(
+export class User extends Model {
+  declare id: string
+  declare username: string
+  declare createdAt: Date
+  declare updatedAt: Date
+}
+
+User.init(
   {
-    username: { type: String, required: true },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
+    sequelize,
+    modelName: 'user',
+    tableName: 'user',
     timestamps: true,
+    indexes: [
+      {
+        name: 'user_username_idx',
+        fields: ['username'],
+      },
+    ],
   }
 )
-
-export const User = model<IUser>('User', userSchema, 'User')

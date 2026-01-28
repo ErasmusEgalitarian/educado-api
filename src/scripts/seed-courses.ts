@@ -58,7 +58,10 @@ interface CourseData {
   tags: string[]
 }
 
-const SAMPLE_VIDEO_URL = 'sample-video.mp4'
+// Video URLs from assets folder
+const VIDEO_CRYPTO_BRO = 'Crypto Bro A.mp4'
+const VIDEO_DESCONFIAR = 'Desconfiar é se proteger.mp4'
+const VIDEO_SENHA = 'Nunca passar senha ou código.mp4'
 
 const mockCourses: CourseData[] = [
   {
@@ -79,7 +82,7 @@ const mockCourses: CourseData[] = [
       {
         id: '1-1',
         title: 'Introduction to Waste Types',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_CRYPTO_BRO,
         thumbnailUrl: 'section-1-1',
         duration: 180,
         questions: [
@@ -109,7 +112,7 @@ const mockCourses: CourseData[] = [
       {
         id: '1-2',
         title: 'Identifying Recyclable Materials',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_DESCONFIAR,
         thumbnailUrl: 'section-1-2',
         duration: 240,
         questions: [
@@ -147,7 +150,7 @@ const mockCourses: CourseData[] = [
       {
         id: '1-3',
         title: 'Proper Sorting Techniques',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_SENHA,
         thumbnailUrl: 'section-1-1',
         duration: 200,
         questions: [
@@ -194,7 +197,7 @@ const mockCourses: CourseData[] = [
       {
         id: '2-1',
         title: 'Personal Protection Equipment',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_CRYPTO_BRO,
         thumbnailUrl: 'section-1-1',
         duration: 220,
         questions: [
@@ -224,7 +227,7 @@ const mockCourses: CourseData[] = [
       {
         id: '2-2',
         title: 'Handling Sharp Objects',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_DESCONFIAR,
         thumbnailUrl: 'section-1-2',
         duration: 180,
         questions: [
@@ -254,7 +257,7 @@ const mockCourses: CourseData[] = [
       {
         id: '2-3',
         title: 'Identifying Hazardous Materials',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_SENHA,
         thumbnailUrl: 'section-1-1',
         duration: 260,
         questions: [
@@ -284,7 +287,7 @@ const mockCourses: CourseData[] = [
       {
         id: '2-4',
         title: 'Emergency Procedures',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_CRYPTO_BRO,
         thumbnailUrl: 'section-1-2',
         duration: 200,
         questions: [
@@ -331,7 +334,7 @@ const mockCourses: CourseData[] = [
       {
         id: '3-1',
         title: 'Understanding Plastic Types',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_DESCONFIAR,
         thumbnailUrl: 'section-1-1',
         duration: 240,
         questions: [
@@ -356,7 +359,7 @@ const mockCourses: CourseData[] = [
       {
         id: '3-2',
         title: 'Metal Classification',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_SENHA,
         thumbnailUrl: 'section-1-2',
         duration: 210,
         questions: [
@@ -395,7 +398,7 @@ const mockCourses: CourseData[] = [
       {
         id: '3-3',
         title: 'Paper and Cardboard Quality',
-        videoUrl: SAMPLE_VIDEO_URL,
+        videoUrl: VIDEO_CRYPTO_BRO,
         thumbnailUrl: 'section-1-1',
         duration: 190,
         questions: [
@@ -429,14 +432,14 @@ const mockCourses: CourseData[] = [
     title: 'Finanças Pessoais',
     shortDescription: 'Aprenda o básico sobre gestão financeira pessoal',
     description:
-      'Este curso ensina o básico sobre dinheiro: como gastar, guardar e evitar dívidas. É feito para quem está começando e quer cuidar melhor do seu dinheiro. As aulas são simples e com exemplos do dia a dia. Ideal para quem quer aprender a se organizar e planejar o futuro.',
+      'Este curso ensina o básico sobre dinheiro: como gastar, guardar e evitar dívidas. Aprenda também a se proteger de golpes financeiros, a importância de não compartilhar senhas e códigos, e como identificar ofertas suspeitas. As aulas são simples e com exemplos do dia a dia. Ideal para quem quer aprender a se organizar e planejar o futuro com segurança.',
     imageUrl: 'course-waste-sorting',
     difficulty: 'beginner',
-    estimatedTime: '25 min',
+    estimatedTime: '40 min',
     passingThreshold: 70,
     category: 'finance',
     rating: 4.5,
-    tags: ['finanças', 'dinheiro', 'planejamento', 'economia'],
+    tags: ['finanças', 'dinheiro', 'planejamento', 'economia', 'segurança'],
     sections: [
       {
         id: '4-1',
@@ -467,8 +470,8 @@ const mockCourses: CourseData[] = [
       },
       {
         id: '4-2',
-        title: 'Conceitos básicos de finanças',
-        videoUrl: SAMPLE_VIDEO_URL,
+        title: 'Cuidados com golpes financeiros',
+        videoUrl: VIDEO_CRYPTO_BRO,
         thumbnailUrl: 'section-1-1',
         duration: 180,
         activities: [
@@ -508,6 +511,83 @@ const mockCourses: CourseData[] = [
             ],
             correctAnswer: 1,
             icon: 'home',
+          },
+        ],
+      },
+      {
+        id: '4-4',
+        title: 'Protegendo suas informações',
+        videoUrl: VIDEO_DESCONFIAR,
+        thumbnailUrl: 'section-1-2',
+        duration: 120,
+        activities: [
+          {
+            id: '4-4-a1',
+            type: 'video_pause',
+            pauseTimestamp: 5,
+            question: 'Por que é importante desconfiar de ofertas muito boas?',
+            options: [
+              'Porque podem ser golpes',
+              'Porque são sempre falsas',
+              'Porque são ilegais',
+              'Porque não existem promoções',
+            ],
+            correctAnswer: 0,
+            icon: 'warning',
+          },
+          {
+            id: '4-4-a2',
+            type: 'video_pause',
+            pauseTimestamp: 15,
+            question: 'Desconfiar ajuda a se proteger de golpes financeiros.',
+            correctAnswer: true,
+            icon: 'shield-checkmark',
+          },
+        ],
+      },
+      {
+        id: '4-5',
+        title: 'Segurança de senhas e códigos',
+        videoUrl: VIDEO_SENHA,
+        thumbnailUrl: 'section-1-1',
+        duration: 90,
+        activities: [
+          {
+            id: '4-5-a1',
+            type: 'video_pause',
+            pauseTimestamp: 5,
+            question: 'Você deve compartilhar sua senha bancária com alguém?',
+            options: [
+              'Sim, com amigos próximos',
+              'Sim, com a família',
+              'Não, nunca',
+              'Sim, se for urgente',
+            ],
+            correctAnswer: 2,
+            icon: 'lock-closed',
+          },
+          {
+            id: '4-5-a2',
+            type: 'video_pause',
+            pauseTimestamp: 15,
+            question: 'O banco pode pedir sua senha por telefone.',
+            correctAnswer: false,
+            icon: 'call',
+          },
+          {
+            id: '4-5-a3',
+            type: 'video_pause',
+            pauseTimestamp: 25,
+            question:
+              'O que você deve fazer se alguém pedir seu código do banco?',
+            options: [
+              'Passar o código imediatamente',
+              'Perguntar quem está pedindo',
+              'Nunca passar códigos ou senhas',
+              'Passar só o código, mas não a senha',
+            ],
+            correctAnswer: 2,
+            icon: 'key',
           },
         ],
       },

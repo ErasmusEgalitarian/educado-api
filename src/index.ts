@@ -8,6 +8,9 @@ import {
   testDatabaseConnection,
 } from './config/database'
 import { userRouter } from './routes/user/user'
+import { coursesRouter } from './routes/courses/courses'
+import { progressRouter } from './routes/progress/progress'
+import { certificatesRouter } from './routes/certificates/certificates'
 
 export const isProd = () => process.env.NODE_ENV === 'production'
 
@@ -44,6 +47,9 @@ initializeDatabase()
 // Initialize routes
 app.use(express.json())
 app.use('/user', userRouter)
+app.use('/courses', coursesRouter)
+app.use('/progress', progressRouter)
+app.use('/certificates', certificatesRouter)
 
 // Start the server
 app.listen(port, () => {

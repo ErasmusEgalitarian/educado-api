@@ -1,14 +1,26 @@
 import { Request, Response } from 'express'
-import { CourseProgress, SectionProgress, Course, Section } from '../../models'
+import {
+  CourseProgress,
+  SectionProgress,
+  Course,
+  Section,
+  User,
+} from '../../models'
 import { requireParam } from '../../utils/request-params'
 
 export const progressGet = async (req: Request, res: Response) => {
   try {
-    const deviceId = requireParam(req.params.deviceId)
+    const username = requireParam(req.params.username)
     const courseId = requireParam(req.params.courseId)
 
+    // Find user by username
+    const user = await User.findOne({ where: { username } })
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
     const progress = await CourseProgress.findOne({
-      where: { deviceId, courseId },
+      where: { userId: user.id, courseId },
       include: [
         {
           model: Course,

@@ -1,13 +1,19 @@
 import { Request, Response } from 'express'
-import { Certificate, Course } from '../../models'
+import { Certificate, Course, User } from '../../models'
 import { requireParam } from '../../utils/request-params'
 
 export const certificatesList = async (req: Request, res: Response) => {
   try {
-    const deviceId = requireParam(req.params.deviceId)
+    const username = requireParam(req.params.username)
+
+    // Find user by username
+    const user = await User.findOne({ where: { username } })
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
 
     const certificates = await Certificate.findAll({
-      where: { deviceId },
+      where: { userId: user.id },
       include: [
         {
           model: Course,

@@ -4,7 +4,7 @@ import { sequelize } from '../config/database'
 export class Certificate extends Model {
   declare id: string
   declare courseId: string
-  declare deviceId: string
+  declare userId: string
   declare courseName: string
   declare completedAt: Date
   declare userName: string
@@ -28,11 +28,13 @@ Certificate.init(
         key: 'id',
       },
     },
-    deviceId: {
-      type: DataTypes.STRING,
+    userId: {
+      type: DataTypes.UUID,
       allowNull: false,
-      comment:
-        'Temporary identifier until auth is implemented - will be replaced with userId',
+      references: {
+        model: 'user',
+        key: 'id',
+      },
     },
     courseName: {
       type: DataTypes.STRING,
@@ -58,16 +60,16 @@ Certificate.init(
     timestamps: true,
     indexes: [
       {
-        name: 'certificate_device_idx',
-        fields: ['deviceId'],
+        name: 'certificate_user_idx',
+        fields: ['userId'],
       },
       {
         name: 'certificate_course_idx',
         fields: ['courseId'],
       },
       {
-        name: 'certificate_device_course_idx',
-        fields: ['deviceId', 'courseId'],
+        name: 'certificate_user_course_idx',
+        fields: ['userId', 'courseId'],
         unique: true,
       },
     ],

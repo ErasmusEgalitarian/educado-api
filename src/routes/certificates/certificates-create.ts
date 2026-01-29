@@ -1,17 +1,23 @@
 import { Request, Response } from 'express'
-import { Certificate } from '../../models'
+import { Certificate, User } from '../../models'
 
 export const certificatesCreate = async (req: Request, res: Response) => {
   try {
-    const { courseId, deviceId, courseName, userName, totalSections } = req.body
+    const { courseId, username, courseName, userName, totalSections } = req.body
 
-    if (!courseId || !deviceId || !courseName || !userName || !totalSections) {
+    if (!courseId || !username || !courseName || !userName || !totalSections) {
       return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    // Find user by username
+    const user = await User.findOne({ where: { username } })
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
     }
 
     // Check if certificate already exists
     const existingCertificate = await Certificate.findOne({
-      where: { deviceId, courseId },
+      where: { userId: user.id, courseId },
     })
 
     if (existingCertificate) {
@@ -23,7 +29,7 @@ export const certificatesCreate = async (req: Request, res: Response) => {
 
     const certificate = await Certificate.create({
       courseId,
-      deviceId,
+      userId: user.id,
       courseName,
       completedAt: new Date(),
       userName,

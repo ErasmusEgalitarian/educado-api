@@ -4,8 +4,8 @@ import { certificatesCreate } from './certificates-create'
 
 export const certificatesRouter = Router()
 
-// GET /certificates/:deviceId - Get all certificates for a device
-certificatesRouter.get('/:deviceId', certificatesList)
+// GET /certificates/:username - Get all certificates for a user
+certificatesRouter.get('/:username', certificatesList)
 
 // POST /certificates - Create a certificate
 certificatesRouter.post('/', certificatesCreate)

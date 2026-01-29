@@ -4,7 +4,7 @@ import { sequelize } from '../config/database'
 export class CourseProgress extends Model {
   declare id: string
   declare courseId: string
-  declare deviceId: string
+  declare userId: string
   declare startedAt: Date
   declare lastAccessedAt: Date
   declare completedAt: Date | null
@@ -27,11 +27,13 @@ CourseProgress.init(
         key: 'id',
       },
     },
-    deviceId: {
-      type: DataTypes.STRING,
+    userId: {
+      type: DataTypes.UUID,
       allowNull: false,
-      comment:
-        'Temporary identifier until auth is implemented - will be replaced with userId',
+      references: {
+        model: 'user',
+        key: 'id',
+      },
     },
     startedAt: {
       type: DataTypes.DATE,
@@ -53,16 +55,16 @@ CourseProgress.init(
     timestamps: true,
     indexes: [
       {
-        name: 'course_progress_device_idx',
-        fields: ['deviceId'],
+        name: 'course_progress_user_idx',
+        fields: ['userId'],
       },
       {
         name: 'course_progress_course_idx',
         fields: ['courseId'],
       },
       {
-        name: 'course_progress_device_course_idx',
-        fields: ['deviceId', 'courseId'],
+        name: 'course_progress_user_course_idx',
+        fields: ['userId', 'courseId'],
         unique: true,
       },
     ],

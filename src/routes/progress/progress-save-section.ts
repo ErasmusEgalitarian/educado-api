@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
-import { CourseProgress, SectionProgress } from '../../models'
+import { CourseProgress, SectionProgress, User } from '../../models'
 import { requireParam } from '../../utils/request-params'
 
 export const progressSaveSection = async (req: Request, res: Response) => {
   try {
-    const deviceId = requireParam(req.params.deviceId)
+    const username = requireParam(req.params.username)
     const courseId = requireParam(req.params.courseId)
     const sectionId = requireParam(req.params.sectionId)
     const { score, totalQuestions } = req.body
@@ -15,9 +15,15 @@ export const progressSaveSection = async (req: Request, res: Response) => {
         .json({ error: 'Score and totalQuestions are required' })
     }
 
+    // Find user by username
+    const user = await User.findOne({ where: { username } })
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
     // Find or create course progress
     let courseProgress = await CourseProgress.findOne({
-      where: { deviceId, courseId },
+      where: { userId: user.id, courseId },
     })
 
     const now = new Date()
@@ -25,7 +31,7 @@ export const progressSaveSection = async (req: Request, res: Response) => {
     if (!courseProgress) {
       courseProgress = await CourseProgress.create({
         courseId,
-        deviceId,
+        userId: user.id,
         startedAt: now,
         lastAccessedAt: now,
       })

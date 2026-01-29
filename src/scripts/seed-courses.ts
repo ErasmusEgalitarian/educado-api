@@ -60,8 +60,8 @@ interface CourseData {
 
 // Video URLs from assets folder
 const VIDEO_CRYPTO_BRO = 'Crypto Bro A.mp4'
-const VIDEO_DESCONFIAR = 'Desconfiar é se proteger.mp4'
-const VIDEO_SENHA = 'Nunca passar senha ou código.mp4'
+const VIDEO_DESCONFIAR = 'Desconfiar e se proteger.mp4'
+const VIDEO_SENHA = 'Nunca passar senha ou cedigo.mp4'
 
 const mockCourses: CourseData[] = [
   {

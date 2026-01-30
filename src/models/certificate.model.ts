@@ -67,11 +67,6 @@ Certificate.init(
         name: 'certificate_course_idx',
         fields: ['courseId'],
       },
-      {
-        name: 'certificate_user_course_idx',
-        fields: ['userId', 'courseId'],
-        unique: true,
-      },
     ],
   }
 )

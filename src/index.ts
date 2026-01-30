@@ -9,6 +9,8 @@ import {
 } from './config/database'
 import { userRouter } from './routes/user/user'
 import { coursesRouter } from './routes/courses/courses'
+import { sectionsRouter } from './routes/sections/sections'
+import { activitiesRouter } from './routes/activities/activities'
 import { progressRouter } from './routes/progress/progress'
 import { certificatesRouter } from './routes/certificates/certificates'
 
@@ -48,6 +50,8 @@ initializeDatabase()
 app.use(express.json())
 app.use('/user', userRouter)
 app.use('/courses', coursesRouter)
+app.use('/sections', sectionsRouter)
+app.use('/activities', activitiesRouter)
 app.use('/progress', progressRouter)
 app.use('/certificates', certificatesRouter)
 

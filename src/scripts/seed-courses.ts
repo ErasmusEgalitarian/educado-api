@@ -62,6 +62,7 @@ interface CourseData {
 const VIDEO_CRYPTO_BRO = 'Crypto Bro A.mp4'
 const VIDEO_DESCONFIAR = 'Desconfiar e se proteger.mp4'
 const VIDEO_SENHA = 'Nunca passar senha ou codigo.mp4'
+const VIDEO_CREDITO = 'v2 7 Dicas Sobre Uso Conciente Do Credito.mp4'
 
 const mockCourses: CourseData[] = [
   {
@@ -623,6 +624,69 @@ const mockCourses: CourseData[] = [
             ],
             correctAnswer: 1,
             icon: 'pricetag',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '5',
+    title: 'Finanças Pessoais',
+    shortDescription: 'Curso Básico de Economia',
+    description:
+      'Uma introdução prática aos principais conceitos da economia, abordando temas como oferta e demanda, inflação, mercado de trabalho e políticas econômicas. Ideal para iniciantes que desejam compreender melhor como a economia impacta o dia a dia e as decisões individuais e coletivas.',
+    imageUrl: 'course-waste-sorting',
+    difficulty: 'beginner',
+    estimatedTime: '30 min',
+    passingThreshold: 70,
+    category: 'finance',
+    rating: 4.2,
+    tags: ['finanças', 'economia', 'crédito', 'dívidas', 'educação financeira'],
+    sections: [
+      {
+        id: '5-1',
+        title: 'Uso Consciente do Crédito',
+        videoUrl: VIDEO_CREDITO,
+        thumbnailUrl: 'section-1-1',
+        duration: 180,
+        activities: [
+          {
+            id: '5-1-a1',
+            type: 'video_pause',
+            pauseTimestamp: 43,
+            question: 'O que fazer quando tenho dívidas?',
+            options: [
+              'Ignorar as dívidas enquanto elas crescem.',
+              'Procurar negociar o mais rápido para pararem de crescer.',
+            ],
+            correctAnswer: 1,
+            icon: 'cash',
+          },
+          {
+            id: '5-1-a2',
+            type: 'video_pause',
+            pauseTimestamp: 76,
+            question: 'Por que o uso do cartão de banco pode ser uma armadilha?',
+            options: [
+              'Se não pagar na data limite, a conta aumenta a cada mês.',
+              'Se não tiver dinheiro para pagar, a conta não aumenta.',
+            ],
+            correctAnswer: 0,
+            icon: 'card',
+          },
+          {
+            id: '5-1-a3',
+            type: 'video_pause',
+            pauseTimestamp: 180,
+            question: 'Quais cuidados devo ter com meu cartão?',
+            options: [
+              'Compartilhar minhas senhas com amigos.',
+              'Deixar meus parentes usarem meu cartão.',
+              'Não gastar mais do que conseguirei pagar.',
+              'Compartilhar minhas senhas com colegas.',
+            ],
+            correctAnswer: 2,
+            icon: 'shield-checkmark',
           },
         ],
       },

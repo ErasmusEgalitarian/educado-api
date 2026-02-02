@@ -8,7 +8,7 @@ export async function coursesCreate(req: Request, res: Response) {
     // Ensure ID is provided (required field)
     if (!courseData.id) {
       return res.status(400).json({
-        error: 'Course ID is required'
+        error: 'Course ID is required',
       })
     }
 
@@ -22,11 +22,11 @@ export async function coursesCreate(req: Request, res: Response) {
     if (error instanceof Error && error.name === 'SequelizeValidationError') {
       res.status(400).json({
         error: 'Validation error',
-        message: error.message
+        message: error.message,
       })
     } else {
       res.status(500).json({
-        error: 'Failed to create course'
+        error: 'Failed to create course',
       })
     }
   }
@@ -38,7 +38,7 @@ export async function coursesUpdate(req: Request, res: Response) {
     const courseData = req.body
 
     const [updated] = await Course.update(courseData, {
-      where: { id }
+      where: { id },
     })
 
     if (!updated) {
@@ -58,7 +58,7 @@ export async function coursesDelete(req: Request, res: Response) {
     const id = req.params.id as string
 
     const deleted = await Course.destroy({
-      where: { id }
+      where: { id },
     })
 
     if (!deleted) {

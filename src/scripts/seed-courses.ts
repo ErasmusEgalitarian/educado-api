@@ -666,7 +666,8 @@ const mockCourses: CourseData[] = [
             id: '5-1-a2',
             type: 'video_pause',
             pauseTimestamp: 76,
-            question: 'Por que o uso do cartão de banco pode ser uma armadilha?',
+            question:
+              'Por que o uso do cartão de banco pode ser uma armadilha?',
             options: [
               'Se não pagar na data limite, a conta aumenta a cada mês.',
               'Se não tiver dinheiro para pagar, a conta não aumenta.',

@@ -5,19 +5,22 @@ import { Activity } from '../../models/activity.model'
 export const activitiesRouter = Router()
 
 // GET /activities/section/:sectionId - Get all activities for a section
-activitiesRouter.get('/section/:sectionId', async (req: Request, res: Response) => {
-  try {
-    const { sectionId } = req.params
-    const activities = await Activity.findAll({
-      where: { sectionId },
-      order: [['order', 'ASC']]
-    })
-    res.json(activities)
-  } catch (error) {
-    console.error('Error fetching activities:', error)
-    res.status(500).json({ error: 'Failed to fetch activities' })
+activitiesRouter.get(
+  '/section/:sectionId',
+  async (req: Request, res: Response) => {
+    try {
+      const { sectionId } = req.params
+      const activities = await Activity.findAll({
+        where: { sectionId },
+        order: [['order', 'ASC']],
+      })
+      res.json(activities)
+    } catch (error) {
+      console.error('Error fetching activities:', error)
+      res.status(500).json({ error: 'Failed to fetch activities' })
+    }
   }
-})
+)
 
 // POST /activities - Create a new activity
 activitiesRouter.post('/', async (req: Request, res: Response) => {
@@ -41,7 +44,7 @@ activitiesRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string
     const [updated] = await Activity.update(req.body, {
-      where: { id }
+      where: { id },
     })
 
     if (!updated) {
@@ -61,7 +64,7 @@ activitiesRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string
     const deleted = await Activity.destroy({
-      where: { id }
+      where: { id },
     })
 
     if (!deleted) {

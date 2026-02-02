@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: educado-postgres
+    environment:
+      POSTGRES_DB: educado_dev
+      POSTGRES_USER: educado
+      POSTGRES_PASSWORD: educado
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U educado -d educado_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

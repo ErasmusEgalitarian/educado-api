@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express from 'express'
+import swaggerUi from 'swagger-ui-express'
 
 import { config } from 'dotenv'
 import {
@@ -13,6 +14,11 @@ import { sectionsRouter } from './routes/sections/sections'
 import { activitiesRouter } from './routes/activities/activities'
 import { progressRouter } from './routes/progress/progress'
 import { certificatesRouter } from './routes/certificates/certificates'
+import { swaggerDocument } from './docs/swagger'
+import { authRouter } from './routes/auth/auth'
+import { adminRegistrationsRouter } from './routes/admin/registrations'
+import { requestIdMiddleware } from './interface/http/middlewares/request-id'
+import { requireHttpsInProduction } from './interface/http/middlewares/require-https'
 
 export const isProd = () => process.env.NODE_ENV === 'production'
 
@@ -26,9 +32,18 @@ const app = express()
 const port = process.env.PORT || 5000
 
 // Initialize middleware
-app.use(cors())
+const frontendOrigin = process.env.FRONTEND_ORIGIN
+app.use(
+  cors({
+    origin: frontendOrigin
+      ? [frontendOrigin]
+      : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  })
+)
 app.use(express.urlencoded({ extended: true, limit: 10000 }))
 app.enable('trust proxy')
+app.use(requestIdMiddleware)
+app.use(requireHttpsInProduction)
 
 // Initialize PostgreSQL with Sequelize
 const initializeDatabase = async () => {
@@ -54,6 +69,9 @@ app.use('/sections', sectionsRouter)
 app.use('/activities', activitiesRouter)
 app.use('/progress', progressRouter)
 app.use('/certificates', certificatesRouter)
+app.use('/auth', authRouter)
+app.use('/admin', adminRegistrationsRouter)
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 // Start the server
 app.listen(port, () => {

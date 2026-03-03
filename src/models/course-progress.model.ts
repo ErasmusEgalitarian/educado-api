@@ -31,7 +31,7 @@ CourseProgress.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'user',
+        model: 'users',
         key: 'id',
       },
     },

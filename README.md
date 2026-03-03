@@ -63,6 +63,16 @@ npm run build
 npm start
 ```
 
+## API Documentation
+
+Swagger UI is available at:
+
+```bash
+http://localhost:5000/docs
+```
+
+If you are using a custom `PORT` in `.env`, replace `5000` with your configured port.
+
 ## Project Structure
 
 ```

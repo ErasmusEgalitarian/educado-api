@@ -20,14 +20,17 @@ export const userLogin = async (req: Request, res: Response) => {
       })
     }
 
-    // Find or create user
-    let user = await User.findOne({
+    const user = await User.findOne({
       where: { username: trimmedUsername },
     })
 
     if (!user) {
-      user = await User.create({
-        username: trimmedUsername,
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    if (user.status !== 'APPROVED') {
+      return res.status(403).json({
+        code: 'ACCOUNT_NOT_APPROVED',
       })
     }
 

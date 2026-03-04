@@ -1,0 +1,39 @@
+-- Adequação de ownership/RBAC para cursos
+-- Executar em ambiente com tabela courses já existente
+
+ALTER TABLE courses
+  ADD COLUMN IF NOT EXISTS "ownerId" uuid;
+
+ALTER TABLE courses
+  ADD COLUMN IF NOT EXISTS "isActive" boolean NOT NULL DEFAULT true;
+
+ALTER TABLE courses
+  ADD COLUMN IF NOT EXISTS "deletedAt" timestamptz NULL;
+
+ALTER TABLE courses
+  ADD COLUMN IF NOT EXISTS "publishedAt" timestamptz NULL;
+ersion -- Backfill obrigatório para bases já populadas: -- 1) Ajuste o 
+UUID abaixo para um usuário válido da tabela users -- 2) Garanta que 
+nenhum curso fique com ownerId nulo -- UPDATE courses -- SET "ownerId" = 
+'<ADMIN_USER_UUID>' -- WHERE "ownerId" IS NULL;
+
+ALTER TABLE courses
+  ALTER COLUMN "ownerId" SET NOT NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'courses_owner_fk'
+  ) THEN
+    ALTER TABLE courses
+      ADD CONSTRAINT courses_owner_fk
+      FOREIGN KEY ("ownerId") REFERENCES users(id);
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS course_owner_idx ON courses ("ownerId");
+CREATE INDEX IF NOT EXISTS course_active_idx ON courses ("isActive");
+CREATE INDEX IF NOT EXISTS course_category_idx ON courses (category);
+CREATE INDEX IF NOT EXISTS course_difficulty_idx ON courses (difficulty);

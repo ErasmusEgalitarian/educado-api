@@ -1,8 +1,29 @@
 import { Router } from 'express'
 import { Request, Response } from 'express'
+import { validateDbActivityPayload } from '../../application/activities/activity-validation-db'
 import { Activity } from '../../models/activity.model'
 
 export const activitiesRouter = Router()
+
+const handleError = (res: Response, error: unknown) => {
+  if (
+    error instanceof Error &&
+    'name' in error &&
+    (error as { name?: string }).name === 'SequelizeForeignKeyConstraintError' &&
+    'table' in error &&
+    (error as { table?: string }).table === 'activities'
+  ) {
+    return res.status(422).json({
+      code: 'VALIDATION_ERROR',
+      fieldErrors: {
+        sectionId: 'INVALID_REFERENCE',
+      },
+    })
+  }
+
+  console.error('Error in activities route:', error)
+  return res.status(500).json({ code: 'INTERNAL_SERVER_ERROR' })
+}
 
 // GET /activities/section/:sectionId - Get all activities for a section
 activitiesRouter.get(
@@ -10,32 +31,67 @@ activitiesRouter.get(
   async (req: Request, res: Response) => {
     try {
       const { sectionId } = req.params
+
+      if (!sectionId) {
+        return res.status(422).json({
+          code: 'VALIDATION_ERROR',
+          fieldErrors: { sectionId: 'REQUIRED' },
+        })
+      }
+
       const activities = await Activity.findAll({
         where: { sectionId },
         order: [['order', 'ASC']],
       })
-      res.json(activities)
+
+      return res.json(activities)
     } catch (error) {
-      console.error('Error fetching activities:', error)
-      res.status(500).json({ error: 'Failed to fetch activities' })
+      return handleError(res, error)
     }
   }
 )
 
+// GET /activities/:id - Get one activity by id
+activitiesRouter.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string
+
+    if (!id) {
+      return res.status(422).json({
+        code: 'VALIDATION_ERROR',
+        fieldErrors: { id: 'REQUIRED' },
+      })
+    }
+
+    const activity = await Activity.findByPk(id)
+
+    if (!activity) {
+      return res.status(404).json({ code: 'ACTIVITY_NOT_FOUND' })
+    }
+
+    return res.json(activity)
+  } catch (error) {
+    return handleError(res, error)
+  }
+})
+
 // POST /activities - Create a new activity
 activitiesRouter.post('/', async (req: Request, res: Response) => {
   try {
-    const activityData = req.body
+    const validation = validateDbActivityPayload(req.body)
 
-    if (!activityData.id) {
-      return res.status(400).json({ error: 'Activity ID is required' })
+    if (!validation.data) {
+      return res.status(422).json({
+        code: 'VALIDATION_ERROR',
+        fieldErrors: validation.fieldErrors,
+      })
     }
 
-    const activity = await Activity.create(activityData)
-    res.status(201).json(activity)
+    const activity = await Activity.create(validation.data)
+
+    return res.status(201).json(activity)
   } catch (error) {
-    console.error('Error creating activity:', error)
-    res.status(500).json({ error: 'Failed to create activity' })
+    return handleError(res, error)
   }
 })
 
@@ -43,19 +99,35 @@ activitiesRouter.post('/', async (req: Request, res: Response) => {
 activitiesRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string
-    const [updated] = await Activity.update(req.body, {
+
+    if (!id) {
+      return res.status(422).json({
+        code: 'VALIDATION_ERROR',
+        fieldErrors: { id: 'REQUIRED' },
+      })
+    }
+
+    const validation = validateDbActivityPayload(req.body, true)
+
+    if (!validation.data) {
+      return res.status(422).json({
+        code: 'VALIDATION_ERROR',
+        fieldErrors: validation.fieldErrors,
+      })
+    }
+
+    const [updated] = await Activity.update(validation.data, {
       where: { id },
     })
 
     if (!updated) {
-      return res.status(404).json({ error: 'Activity not found' })
+      return res.status(404).json({ code: 'ACTIVITY_NOT_FOUND' })
     }
 
     const activity = await Activity.findByPk(id)
-    res.json(activity)
+    return res.json(activity)
   } catch (error) {
-    console.error('Error updating activity:', error)
-    res.status(500).json({ error: 'Failed to update activity' })
+    return handleError(res, error)
   }
 })
 
@@ -63,17 +135,24 @@ activitiesRouter.put('/:id', async (req: Request, res: Response) => {
 activitiesRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string
+
+    if (!id) {
+      return res.status(422).json({
+        code: 'VALIDATION_ERROR',
+        fieldErrors: { id: 'REQUIRED' },
+      })
+    }
+
     const deleted = await Activity.destroy({
       where: { id },
     })
 
     if (!deleted) {
-      return res.status(404).json({ error: 'Activity not found' })
+      return res.status(404).json({ code: 'ACTIVITY_NOT_FOUND' })
     }
 
-    res.status(204).send()
+    return res.status(204).send()
   } catch (error) {
-    console.error('Error deleting activity:', error)
-    res.status(500).json({ error: 'Failed to delete activity' })
+    return handleError(res, error)
   }
 })

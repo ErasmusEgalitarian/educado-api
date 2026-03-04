@@ -1,6 +1,6 @@
 import { config } from 'dotenv'
 import { syncDatabase, testDatabaseConnection } from '../config/database'
-import { Course, Section, Activity } from '../models'
+import { Course, Section, Activity, User } from '../models'
 
 // Load environment variables
 config()
@@ -705,6 +705,23 @@ async function seedCourses() {
 
     console.log('Seeding courses...')
 
+    let owner = await User.findOne({
+      where: { emailNormalized: 'seed-owner@educado.local' },
+    })
+
+    if (!owner) {
+      owner = await User.create({
+        firstName: 'Seed',
+        lastName: 'Owner',
+        email: 'seed-owner@educado.local',
+        emailNormalized: 'seed-owner@educado.local',
+        passwordHash: 'seed-password-hash',
+        status: 'APPROVED',
+        role: 'ADMIN',
+        username: 'seed_owner',
+      })
+    }
+
     for (const courseData of mockCourses) {
       console.log(`Creating course: ${courseData.title}`)
 
@@ -721,6 +738,8 @@ async function seedCourses() {
         category: courseData.category,
         rating: courseData.rating,
         tags: courseData.tags,
+        ownerId: owner.id,
+        isActive: true,
       })
 
       // Create sections and activities

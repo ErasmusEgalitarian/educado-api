@@ -11,3 +11,4 @@ build/**/*.js.map
 
 # TypeScript v1 declaration files
 typings/
+.vscode

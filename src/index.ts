@@ -21,6 +21,8 @@ import { meRouter } from './routes/me/me'
 import { tagsRouter } from './routes/tags/tags'
 import { requestIdMiddleware } from './interface/http/middlewares/request-id'
 import { requireHttpsInProduction } from './interface/http/middlewares/require-https'
+import { initMongo } from './infrastructure/storage/mongo/mongo-client'
+import mediaRoutes from './routes/media'
 
 export const isProd = () => process.env.NODE_ENV === 'production'
 
@@ -61,26 +63,32 @@ const initializeDatabase = async () => {
   }
 }
 
-initializeDatabase()
+const startServer = async () => {
+  await initializeDatabase()
+  await initMongo()
 
-// Initialize routes
-app.use(express.json())
-app.use('/user', userRouter)
-app.use('/courses', coursesRouter)
-app.use('/sections', sectionsRouter)
-app.use('/activities', activitiesRouter)
-app.use('/progress', progressRouter)
-app.use('/certificates', certificatesRouter)
-app.use('/auth', authRouter)
-app.use('/admin', adminRegistrationsRouter)
-app.use('/me', meRouter)
-app.use('/tags', tagsRouter)
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+  // Initialize routes
+  app.use(express.json())
+  app.use('/user', userRouter)
+  app.use('/courses', coursesRouter)
+  app.use('/sections', sectionsRouter)
+  app.use('/activities', activitiesRouter)
+  app.use('/progress', progressRouter)
+  app.use('/certificates', certificatesRouter)
+  app.use('/auth', authRouter)
+  app.use('/admin', adminRegistrationsRouter)
+  app.use('/me', meRouter)
+  app.use('/tags', tagsRouter)
+  app.use('/media', mediaRoutes)
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`)
-})
+  // Start the server
+  app.listen(port, () => {
+    console.log(`Server is running on port: ${port}`)
+  })
+}
+
+void startServer()
 
 // Export sequelize instance
 export { sequelize }

@@ -1,14 +1,13 @@
 type FieldErrors = Record<string, string>
 
-import { shortenUrl } from '../../utils/shorten-url'
-
 type Difficulty = 'beginner' | 'intermediate' | 'advanced'
+const MEDIA_ID_REGEX = /^[a-f\d]{24}$/i
 
 export type CoursePayload = {
   title: string
   description: string
   shortDescription: string
-  imageUrl: string
+  imageMediaId: string
   difficulty: Difficulty
   estimatedTime: string
   passingThreshold: number
@@ -56,7 +55,7 @@ export const validateCoursePayload = (
   const title = normalizeText(body.title)
   const description = normalizeText(body.description)
   const shortDescription = normalizeText(body.shortDescription)
-  const imageUrl = shortenUrl(normalizeText(body.imageUrl))
+  const imageMediaId = normalizeText(body.imageMediaId)
   const difficultyRaw = normalizeText(body.difficulty)
   const estimatedTime = normalizeText(body.estimatedTime)
   const category = normalizeText(body.category)
@@ -85,9 +84,12 @@ export const validateCoursePayload = (
     }
   }
 
-  if (!partial || body.imageUrl !== undefined) {
-    if (!imageUrl) fieldErrors.imageUrl = 'REQUIRED'
-    if (imageUrl.length > 2048) fieldErrors.imageUrl = 'LENGTH_INVALID'
+  if (!partial || body.imageMediaId !== undefined) {
+    if (!imageMediaId) {
+      fieldErrors.imageMediaId = 'REQUIRED'
+    } else if (!MEDIA_ID_REGEX.test(imageMediaId)) {
+      fieldErrors.imageMediaId = 'INVALID'
+    }
   }
 
   if (!partial || body.difficulty !== undefined) {
@@ -137,7 +139,7 @@ export const validateCoursePayload = (
       title,
       description,
       shortDescription,
-      imageUrl,
+      imageMediaId,
       difficulty: safeDifficulty,
       estimatedTime,
       passingThreshold: Number.isNaN(passingThreshold) ? 75 : passingThreshold,

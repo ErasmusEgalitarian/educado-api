@@ -6,6 +6,8 @@ type DbActivityType =
   | 'text_reading'
   | 'multiple_choice'
 
+const MEDIA_ID_REGEX = /^[a-f\d]{24}$/i
+
 export type DbActivityPayload = {
   id?: string
   sectionId: string
@@ -15,7 +17,7 @@ export type DbActivityPayload = {
   pauseTimestamp?: number | null
   textPages?: string[] | null
   question?: string | null
-  imageUrl?: string | null
+  imageMediaId?: string | null
   options?: string[] | null
   correctAnswer?: number | boolean | null
   icon?: string | null
@@ -74,7 +76,8 @@ export const validateDbActivityPayload = (
   const order = body.order
   const pauseTimestampRaw = body.pauseTimestamp
   const question = body.question === null ? null : normalizeText(body.question)
-  const imageUrl = body.imageUrl === null ? null : normalizeText(body.imageUrl)
+  const imageMediaId =
+    body.imageMediaId === null ? null : normalizeText(body.imageMediaId)
   const icon = body.icon === null ? null : normalizeText(body.icon)
 
   const textPages = parseStringArray(body.textPages)
@@ -129,12 +132,10 @@ export const validateDbActivityPayload = (
     fieldErrors.correctAnswer = 'INVALID'
   }
 
-  if (
-    body.imageUrl !== undefined &&
-    imageUrl !== null &&
-    imageUrl.length > 2048
-  ) {
-    fieldErrors.imageUrl = 'LENGTH_INVALID'
+  if (body.imageMediaId !== undefined) {
+    if (imageMediaId && !MEDIA_ID_REGEX.test(imageMediaId)) {
+      fieldErrors.imageMediaId = 'INVALID'
+    }
   }
 
   if (Object.keys(fieldErrors).length > 0) {
@@ -162,7 +163,7 @@ export const validateDbActivityPayload = (
   }
   if (body.textPages !== undefined) data.textPages = textPages
   if (body.question !== undefined) data.question = question
-  if (body.imageUrl !== undefined) data.imageUrl = imageUrl
+  if (body.imageMediaId !== undefined) data.imageMediaId = imageMediaId
   if (body.options !== undefined) data.options = options
   if (body.correctAnswer !== undefined) data.correctAnswer = correctAnswer
   if (body.icon !== undefined) data.icon = icon

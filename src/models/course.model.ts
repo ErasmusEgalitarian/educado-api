@@ -7,7 +7,7 @@ export class Course extends Model {
   declare title: string
   declare description: string
   declare shortDescription: string
-  declare imageUrl: string
+  declare imageMediaId: string
   declare difficulty: 'beginner' | 'intermediate' | 'advanced'
   declare estimatedTime: string
   declare passingThreshold: number
@@ -48,7 +48,7 @@ Course.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    imageUrl: {
+    imageMediaId: {
       type: DataTypes.TEXT,
       allowNull: false,
     },

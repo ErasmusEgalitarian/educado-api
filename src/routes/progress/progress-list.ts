@@ -18,7 +18,7 @@ export const progressList = async (req: Request, res: Response) => {
         {
           model: Course,
           as: 'course',
-          attributes: ['id', 'title', 'imageUrl'],
+          attributes: ['id', 'title', 'imageMediaId'],
         },
         {
           model: SectionProgress,

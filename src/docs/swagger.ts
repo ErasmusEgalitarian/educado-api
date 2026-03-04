@@ -13,11 +13,14 @@ export const swaggerDocument = {
       description: 'Registro e autenticação com aprovação administrativa',
     },
     { name: 'Admin', description: 'Revisão administrativa de candidaturas' },
+    { name: 'Me', description: 'Endpoints do usuário autenticado' },
     { name: 'Courses', description: 'Endpoints de cursos' },
     { name: 'Sections', description: 'Endpoints de seções' },
     { name: 'Activities', description: 'Endpoints de atividades' },
     { name: 'Progress', description: 'Endpoints de progresso' },
     { name: 'Certificates', description: 'Endpoints de certificados' },
+    { name: 'Tags', description: 'Endpoints de tags' },
+    { name: 'Media', description: 'Upload e listagem de mídia' },
   ],
   components: {
     securitySchemes: {
@@ -75,7 +78,7 @@ export const swaggerDocument = {
             items: { type: 'string' },
           },
           question: { type: 'string', nullable: true },
-          imageUrl: { type: 'string', nullable: true },
+          imageMediaId: { type: 'string', nullable: true },
           options: {
             type: 'array',
             nullable: true,
@@ -101,8 +104,8 @@ export const swaggerDocument = {
           id: { type: 'string' },
           courseId: { type: 'string' },
           title: { type: 'string' },
-          videoUrl: { type: 'string', nullable: true },
-          thumbnailUrl: { type: 'string', nullable: true },
+          videoMediaId: { type: 'string', nullable: true },
+          thumbnailMediaId: { type: 'string', nullable: true },
           duration: { type: 'integer', nullable: true },
           order: { type: 'integer' },
           createdAt: { type: 'string', format: 'date-time' },
@@ -131,7 +134,7 @@ export const swaggerDocument = {
           title: { type: 'string' },
           description: { type: 'string' },
           shortDescription: { type: 'string' },
-          imageUrl: { type: 'string' },
+          imageMediaId: { type: 'string' },
           difficulty: {
             type: 'string',
             enum: ['beginner', 'intermediate', 'advanced'],
@@ -149,7 +152,7 @@ export const swaggerDocument = {
           'title',
           'description',
           'shortDescription',
-          'imageUrl',
+          'imageMediaId',
           'difficulty',
           'estimatedTime',
           'passingThreshold',
@@ -235,7 +238,7 @@ export const swaggerDocument = {
                 properties: {
                   id: { type: 'string' },
                   title: { type: 'string' },
-                  imageUrl: { type: 'string' },
+                  imageMediaId: { type: 'string' },
                 },
               },
               sections: {
@@ -297,7 +300,7 @@ export const swaggerDocument = {
                 properties: {
                   id: { type: 'string' },
                   title: { type: 'string' },
-                  imageUrl: { type: 'string' },
+                  imageMediaId: { type: 'string' },
                 },
               },
             },
@@ -489,6 +492,83 @@ export const swaggerDocument = {
           notes: { type: 'string' },
         },
         required: ['reason'],
+      },
+      Tag: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+          slug: { type: 'string' },
+          description: { type: 'string', nullable: true },
+          isActive: { type: 'boolean' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: ['id', 'name', 'slug', 'isActive', 'createdAt', 'updatedAt'],
+      },
+      TagPayload: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          description: { type: 'string', nullable: true },
+          isActive: { type: 'boolean' },
+        },
+      },
+      Media: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string' },
+          ownerId: { type: 'string', format: 'uuid' },
+          kind: { type: 'string', enum: ['image', 'video'] },
+          title: { type: 'string' },
+          altText: { type: 'string' },
+          description: { type: 'string' },
+          streamUrl: { type: 'string' },
+          filename: { type: 'string' },
+          contentType: { type: 'string' },
+          size: { type: 'integer' },
+          gridFsId: { type: 'string' },
+          status: { type: 'string', enum: ['ACTIVE', 'INACTIVE'] },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: [
+          'ownerId',
+          'kind',
+          'title',
+          'altText',
+          'description',
+          'streamUrl',
+          'filename',
+          'contentType',
+          'size',
+          'gridFsId',
+          'status',
+          'createdAt',
+          'updatedAt',
+        ],
+      },
+      MediaListResponse: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Media' },
+          },
+          page: { type: 'integer' },
+          limit: { type: 'integer' },
+          total: { type: 'integer' },
+        },
+        required: ['items', 'page', 'limit', 'total'],
+      },
+      MediaMetadataUpdateRequest: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          altText: { type: 'string' },
+          description: { type: 'string' },
+        },
+        required: ['title', 'altText', 'description'],
       },
     },
   },
@@ -986,10 +1066,153 @@ export const swaggerDocument = {
         },
       },
     },
+    '/admin/media': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Listar todas as mídias (ADMIN)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'page',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, default: 1 },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+          },
+          {
+            name: 'kind',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['image', 'video'] },
+          },
+          {
+            name: 'status',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['ACTIVE', 'INACTIVE'] },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Lista global de mídias',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/MediaListResponse' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/me/courses': {
+      get: {
+        tags: ['Me'],
+        summary: 'Listar cursos do usuário autenticado',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de cursos do usuário',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/Course' },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/me/media': {
+      get: {
+        tags: ['Me'],
+        summary: 'Listar mídias do usuário autenticado',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'page',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, default: 1 },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+          },
+          {
+            name: 'kind',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['image', 'video'] },
+          },
+          {
+            name: 'status',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['ACTIVE', 'INACTIVE'] },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Lista de mídias do usuário',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/MediaListResponse' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+        },
+      },
+    },
     '/courses': {
       get: {
         tags: ['Courses'],
         summary: 'Lista todos os cursos com seções e atividades',
+        security: [{ bearerAuth: [] }],
         responses: {
           '200': {
             description: 'Lista de cursos',
@@ -1015,6 +1238,7 @@ export const swaggerDocument = {
       post: {
         tags: ['Courses'],
         summary: 'Cria um curso',
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -1055,6 +1279,7 @@ export const swaggerDocument = {
       get: {
         tags: ['Courses'],
         summary: 'Busca um curso por ID',
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'id',
@@ -1101,6 +1326,7 @@ export const swaggerDocument = {
       put: {
         tags: ['Courses'],
         summary: 'Atualiza um curso por ID',
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'id',
@@ -1147,6 +1373,7 @@ export const swaggerDocument = {
       delete: {
         tags: ['Courses'],
         summary: 'Remove um curso por ID',
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'id',
@@ -1170,6 +1397,110 @@ export const swaggerDocument = {
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/courses/{id}/activate': {
+      post: {
+        tags: ['Courses'],
+        summary: 'Ativar curso por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Curso ativado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Course' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem permissão para o curso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Curso não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'COURSE_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/courses/{id}/deactivate': {
+      post: {
+        tags: ['Courses'],
+        summary: 'Desativar curso por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Curso desativado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Course' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem permissão para o curso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Curso não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'COURSE_NOT_FOUND' },
               },
             },
           },
@@ -1434,6 +1765,47 @@ export const swaggerDocument = {
       },
     },
     '/activities/{id}': {
+      get: {
+        tags: ['Activities'],
+        summary: 'Busca uma atividade por ID',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Atividade encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Activity' },
+              },
+            },
+          },
+          '404': {
+            description: 'Atividade não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'ACTIVITY_NOT_FOUND' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
       put: {
         tags: ['Activities'],
         summary: 'Atualiza uma atividade por ID',
@@ -1856,6 +2228,944 @@ export const swaggerDocument = {
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/tags': {
+      get: {
+        tags: ['Tags'],
+        summary: 'Listar tags',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de tags',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/Tag' },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Tags'],
+        summary: 'Criar tag',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/TagPayload' },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Tag criada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Tag' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/tags/{id}': {
+      get: {
+        tags: ['Tags'],
+        summary: 'Buscar tag por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Tag encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Tag' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '404': {
+            description: 'Tag não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'TAG_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ['Tags'],
+        summary: 'Atualizar tag',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/TagPayload' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Tag atualizada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Tag' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '404': {
+            description: 'Tag não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'TAG_NOT_FOUND' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Tags'],
+        summary: 'Remover tag',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '204': { description: 'Tag removida' },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '404': {
+            description: 'Tag não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'TAG_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/media/images': {
+      post: {
+        tags: ['Media'],
+        summary: 'Upload binário de imagem (Mongo/GridFS)',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  file: {
+                    type: 'string',
+                    format: 'binary',
+                  },
+                },
+                required: ['file'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Imagem enviada com sucesso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '422': {
+            description: 'Arquivo ausente ou tipo inválido',
+            content: {
+              'application/json': {
+                schema: {
+                  oneOf: [
+                    { $ref: '#/components/schemas/ValidationErrorResponse' },
+                    { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/media/videos': {
+      post: {
+        tags: ['Media'],
+        summary: 'Upload binário de vídeo (Mongo/GridFS)',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  file: {
+                    type: 'string',
+                    format: 'binary',
+                  },
+                },
+                required: ['file'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Vídeo enviado com sucesso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '422': {
+            description: 'Arquivo ausente ou tipo inválido',
+            content: {
+              'application/json': {
+                schema: {
+                  oneOf: [
+                    { $ref: '#/components/schemas/ValidationErrorResponse' },
+                    { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/media/images/{id}': {
+      get: {
+        tags: ['Media'],
+        summary: 'Obter metadados de imagem por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Metadados da imagem',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                examples: {
+                  forbidden: { value: { code: 'FORBIDDEN' } },
+                  inactive: { value: { code: 'MEDIA_INACTIVE' } },
+                },
+              },
+            },
+          },
+          '404': {
+            description: 'Mídia não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Media'],
+        summary: 'Excluir imagem por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '204': { description: 'Imagem excluída com sucesso' },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Mídia não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/media/images/{id}/metadata': {
+      post: {
+        tags: ['Media'],
+        summary: 'Criar metadados SQL da imagem por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/MediaMetadataUpdateRequest',
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Metadados da imagem salvos',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Mídia não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_NOT_FOUND' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ['Media'],
+        summary: 'Atualizar metadados SQL da imagem por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/MediaMetadataUpdateRequest',
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Metadados da imagem atualizados',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '404': {
+            description: 'Metadados não encontrados para atualização',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_METADATA_NOT_FOUND' },
+              },
+            },
+          },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/media/videos/{id}': {
+      get: {
+        tags: ['Media'],
+        summary: 'Obter metadados de vídeo por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Metadados do vídeo',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                examples: {
+                  forbidden: { value: { code: 'FORBIDDEN' } },
+                  inactive: { value: { code: 'MEDIA_INACTIVE' } },
+                },
+              },
+            },
+          },
+          '404': {
+            description: 'Mídia não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Media'],
+        summary: 'Excluir vídeo por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '204': { description: 'Vídeo excluído com sucesso' },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Mídia não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/media/videos/{id}/metadata': {
+      post: {
+        tags: ['Media'],
+        summary: 'Criar metadados SQL do vídeo por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/MediaMetadataUpdateRequest',
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Metadados do vídeo salvos',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Mídia não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_NOT_FOUND' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ['Media'],
+        summary: 'Atualizar metadados SQL do vídeo por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/MediaMetadataUpdateRequest',
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Metadados do vídeo atualizados',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Media' },
+              },
+            },
+          },
+          '404': {
+            description: 'Metadados não encontrados para atualização',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_METADATA_NOT_FOUND' },
+              },
+            },
+          },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso à mídia',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/media/{id}/stream': {
+      get: {
+        tags: ['Media'],
+        summary: 'Stream de mídia por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Stream do conteúdo binário',
+            content: {
+              'application/octet-stream': {
+                schema: {
+                  type: 'string',
+                  format: 'binary',
+                },
+              },
+            },
+          },
+          '400': {
+            description: 'ID inválido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INVALID_MEDIA_ID' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Sem acesso ao arquivo',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                examples: {
+                  forbidden: { value: { code: 'FORBIDDEN' } },
+                  inactive: { value: { code: 'MEDIA_INACTIVE' } },
+                },
+              },
+            },
+          },
+          '404': {
+            description: 'Mídia não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'MEDIA_NOT_FOUND' },
               },
             },
           },

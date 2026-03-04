@@ -70,7 +70,6 @@ export async function coursesCreate(req: Request, res: Response) {
     }
 
     const tags = await resolveTags(validatedTagIds.tagIds)
-
     const course = await Course.create({
       ...validation.data,
       tags: tags.map((tag) => tag.name),
@@ -106,7 +105,7 @@ export async function coursesCreate(req: Request, res: Response) {
       return res.status(422).json({
         code: 'VALIDATION_ERROR',
         fieldErrors: {
-          imageUrl: 'LENGTH_INVALID',
+          imageMediaId: 'INVALID',
         },
       })
     }
@@ -139,7 +138,6 @@ export async function coursesUpdate(req: Request, res: Response) {
     }
 
     const tags = await resolveTags(validatedTagIds.tagIds)
-
     const course = await findCourseByIdForActor(id, auth)
 
     await course.update({
@@ -176,7 +174,7 @@ export async function coursesUpdate(req: Request, res: Response) {
       return res.status(422).json({
         code: 'VALIDATION_ERROR',
         fieldErrors: {
-          imageUrl: 'LENGTH_INVALID',
+          imageMediaId: 'INVALID',
         },
       })
     }

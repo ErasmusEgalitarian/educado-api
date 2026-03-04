@@ -16,7 +16,7 @@ export class Activity extends Model {
   declare pauseTimestamp: number | null
   declare textPages: string[] | null
   declare question: string | null
-  declare imageUrl: string | null
+  declare imageMediaId: string | null
   declare options: string[] | null
   declare correctAnswer: number | boolean | null
   declare icon: string | null
@@ -67,7 +67,7 @@ Activity.init(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    imageUrl: {
+    imageMediaId: {
       type: DataTypes.TEXT,
       allowNull: true,
     },

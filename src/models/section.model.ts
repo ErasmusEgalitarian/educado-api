@@ -5,8 +5,8 @@ export class Section extends Model {
   declare id: string
   declare courseId: string
   declare title: string
-  declare videoUrl: string | null
-  declare thumbnailUrl: string | null
+  declare videoMediaId: string | null
+  declare thumbnailMediaId: string | null
   declare duration: number | null
   declare order: number
   declare createdAt: Date
@@ -31,11 +31,11 @@ Section.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    videoUrl: {
+    videoMediaId: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    thumbnailUrl: {
+    thumbnailMediaId: {
       type: DataTypes.STRING,
       allowNull: true,
     },

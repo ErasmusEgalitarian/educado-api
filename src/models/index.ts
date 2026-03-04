@@ -10,6 +10,7 @@ import { RegistrationProfile } from './registration-profile.model'
 import { RegistrationReview } from './registration-review.model'
 import { Tag } from './tag.model'
 import { CourseTag } from './course-tag.model'
+import { MediaAsset } from './media-asset.model'
 
 // Define all associations here to avoid circular dependency issues
 
@@ -29,6 +30,7 @@ Course.belongsToMany(Tag, {
 User.hasMany(CourseProgress, { foreignKey: 'userId', as: 'courseProgress' })
 User.hasMany(Certificate, { foreignKey: 'userId', as: 'certificates' })
 User.hasMany(Course, { foreignKey: 'ownerId', as: 'ownedCourses' })
+User.hasMany(MediaAsset, { foreignKey: 'ownerId', as: 'mediaAssets' })
 User.hasOne(RegistrationProfile, {
   foreignKey: 'userId',
   as: 'registrationProfile',
@@ -88,6 +90,7 @@ Tag.hasMany(CourseTag, { foreignKey: 'tagId', as: 'courseTags' })
 RegistrationProfile.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 RegistrationReview.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 RegistrationReview.belongsTo(User, { foreignKey: 'reviewedBy', as: 'reviewer' })
+MediaAsset.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' })
 
 export {
   User,
@@ -101,4 +104,5 @@ export {
   RegistrationReview,
   Tag,
   CourseTag,
+  MediaAsset,
 }

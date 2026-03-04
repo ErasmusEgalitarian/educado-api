@@ -10,6 +10,7 @@ export type ActivityType =
 export class Activity extends Model {
   declare id: string
   declare sectionId: string
+  declare title: string | null
   declare type: ActivityType
   declare order: number
   declare pauseTimestamp: number | null
@@ -37,6 +38,10 @@ Activity.init(
         key: 'id',
       },
     },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     type: {
       type: DataTypes.ENUM(
         'video_pause',
@@ -63,7 +68,7 @@ Activity.init(
       allowNull: true,
     },
     imageUrl: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     options: {

@@ -8,6 +8,8 @@ import { SectionProgress } from './section-progress.model'
 import { Certificate } from './certificate.model'
 import { RegistrationProfile } from './registration-profile.model'
 import { RegistrationReview } from './registration-review.model'
+import { Tag } from './tag.model'
+import { CourseTag } from './course-tag.model'
 
 // Define all associations here to avoid circular dependency issues
 
@@ -15,10 +17,18 @@ import { RegistrationReview } from './registration-review.model'
 Course.hasMany(Section, { foreignKey: 'courseId', as: 'sections' })
 Course.hasMany(CourseProgress, { foreignKey: 'courseId', as: 'progress' })
 Course.hasMany(Certificate, { foreignKey: 'courseId', as: 'certificates' })
+Course.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' })
+Course.belongsToMany(Tag, {
+  through: CourseTag,
+  foreignKey: 'courseId',
+  otherKey: 'tagId',
+  as: 'reusableTags',
+})
 
 // User relationships
 User.hasMany(CourseProgress, { foreignKey: 'userId', as: 'courseProgress' })
 User.hasMany(Certificate, { foreignKey: 'userId', as: 'certificates' })
+User.hasMany(Course, { foreignKey: 'ownerId', as: 'ownedCourses' })
 User.hasOne(RegistrationProfile, {
   foreignKey: 'userId',
   as: 'registrationProfile',
@@ -62,6 +72,18 @@ SectionProgress.belongsTo(Section, { foreignKey: 'sectionId', as: 'section' })
 Certificate.belongsTo(Course, { foreignKey: 'courseId', as: 'course' })
 Certificate.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 
+// Tag relationships
+Tag.belongsToMany(Course, {
+  through: CourseTag,
+  foreignKey: 'tagId',
+  otherKey: 'courseId',
+  as: 'courses',
+})
+CourseTag.belongsTo(Course, { foreignKey: 'courseId', as: 'course' })
+CourseTag.belongsTo(Tag, { foreignKey: 'tagId', as: 'tag' })
+Course.hasMany(CourseTag, { foreignKey: 'courseId', as: 'courseTags' })
+Tag.hasMany(CourseTag, { foreignKey: 'tagId', as: 'courseTags' })
+
 // Registration relationships
 RegistrationProfile.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 RegistrationReview.belongsTo(User, { foreignKey: 'userId', as: 'user' })
@@ -77,4 +99,6 @@ export {
   Certificate,
   RegistrationProfile,
   RegistrationReview,
+  Tag,
+  CourseTag,
 }

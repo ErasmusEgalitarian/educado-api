@@ -1,37 +1,96 @@
 import { Request, Response } from 'express'
-import { Course, Section, Activity } from '../../models'
+import { AppError } from '../../application/common/app-error'
+import {
+  buildCourseWhereClause,
+  ensureAdmin,
+  findCourseByIdForActor,
+  parseCourseStatus,
+} from '../../application/courses/course-access-service'
+import { Course, Section, Activity, Tag } from '../../models'
+import { getAuthContext } from '../../interface/http/middlewares/auth-jwt'
 import { requireParam } from '../../utils/request-params'
 
-export const coursesList = async (_req: Request, res: Response) => {
+const toQueryString = (value: unknown): string | undefined => {
+  return typeof value === 'string' ? value : undefined
+}
+
+const handleError = (res: Response, error: unknown) => {
+  if (error instanceof AppError) {
+    return res.status(error.statusCode).json(error.payload)
+  }
+
+  console.error('Unexpected courses route error', error)
+  return res.status(500).json({ code: 'INTERNAL_SERVER_ERROR' })
+}
+
+export const coursesList = async (req: Request, res: Response) => {
   try {
+    const auth = getAuthContext(res)
+    ensureAdmin(auth)
+
+    const where = buildCourseWhereClause({
+      status: parseCourseStatus(req.query.status),
+      category: toQueryString(req.query.category),
+      difficulty: toQueryString(req.query.difficulty),
+      q: toQueryString(req.query.q),
+    })
+
     const courses = await Course.findAll({
+      where,
       include: [
         {
-          model: Section,
-          as: 'sections',
-          include: [
-            {
-              model: Activity,
-              as: 'activities',
-              order: [['order', 'ASC']],
-            },
-          ],
-          order: [['order', 'ASC']],
+          model: Tag,
+          as: 'reusableTags',
+          through: { attributes: [] },
         },
       ],
+      order: [['createdAt', 'DESC']],
     })
+
     res.json(courses)
   } catch (error) {
-    console.error('Error fetching courses:', error)
-    res.status(500).json({ error: 'Failed to fetch courses' })
+    return handleError(res, error)
+  }
+}
+
+export const myCoursesList = async (req: Request, res: Response) => {
+  try {
+    const auth = getAuthContext(res)
+
+    const where = buildCourseWhereClause(
+      {
+        status: parseCourseStatus(req.query.status),
+        category: toQueryString(req.query.category),
+        difficulty: toQueryString(req.query.difficulty),
+        q: toQueryString(req.query.q),
+      },
+      auth.userId
+    )
+
+    const courses = await Course.findAll({
+      where,
+      include: [
+        {
+          model: Tag,
+          as: 'reusableTags',
+          through: { attributes: [] },
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+    })
+
+    return res.json(courses)
+  } catch (error) {
+    return handleError(res, error)
   }
 }
 
 export const coursesGet = async (req: Request, res: Response) => {
   try {
     const id = requireParam(req.params.id)
+    const auth = getAuthContext(res)
 
-    const course = await Course.findByPk(id, {
+    const course = await findCourseByIdForActor(id, auth, {
       include: [
         {
           model: Section,
@@ -45,22 +104,26 @@ export const coursesGet = async (req: Request, res: Response) => {
           ],
           order: [['order', 'ASC']],
         },
+        {
+          model: Tag,
+          as: 'reusableTags',
+          through: { attributes: [] },
+        },
       ],
     })
 
-    if (!course) {
-      return res.status(404).json({ error: 'Course not found' })
-    }
-
-    res.json(course)
+    return res.json(course)
   } catch (error) {
     if (
       error instanceof Error &&
       error.message.includes('Missing required parameter')
     ) {
-      return res.status(400).json({ error: error.message })
+      return res.status(422).json({
+        code: 'VALIDATION_ERROR',
+        fieldErrors: { id: 'REQUIRED' },
+      })
     }
-    console.error('Error fetching course:', error)
-    res.status(500).json({ error: 'Failed to fetch course' })
+
+    return handleError(res, error)
   }
 }

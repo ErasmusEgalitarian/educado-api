@@ -17,6 +17,8 @@ import { certificatesRouter } from './routes/certificates/certificates'
 import { swaggerDocument } from './docs/swagger'
 import { authRouter } from './routes/auth/auth'
 import { adminRegistrationsRouter } from './routes/admin/registrations'
+import { meRouter } from './routes/me/me'
+import { tagsRouter } from './routes/tags/tags'
 import { requestIdMiddleware } from './interface/http/middlewares/request-id'
 import { requireHttpsInProduction } from './interface/http/middlewares/require-https'
 
@@ -71,6 +73,8 @@ app.use('/progress', progressRouter)
 app.use('/certificates', certificatesRouter)
 app.use('/auth', authRouter)
 app.use('/admin', adminRegistrationsRouter)
+app.use('/me', meRouter)
+app.use('/tags', tagsRouter)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 // Start the server

@@ -20,6 +20,7 @@ export const swaggerDocument = {
     { name: 'Progress', description: 'Endpoints de progresso' },
     { name: 'Certificates', description: 'Endpoints de certificados' },
     { name: 'Tags', description: 'Endpoints de tags' },
+    { name: 'Institutions', description: 'Endpoints de instituições' },
     { name: 'Media', description: 'Upload e listagem de mídia' },
   ],
   components: {
@@ -131,6 +132,7 @@ export const swaggerDocument = {
         type: 'object',
         properties: {
           id: { type: 'string' },
+          ownerId: { type: 'string', format: 'uuid' },
           title: { type: 'string' },
           description: { type: 'string' },
           shortDescription: { type: 'string' },
@@ -485,6 +487,56 @@ export const swaggerDocument = {
           'createdAt',
         ],
       },
+      AdminUserListItem: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          role: { type: 'string', enum: ['USER', 'ADMIN'] },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          status: { $ref: '#/components/schemas/RegistrationStatus' },
+          registrationSubmittedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+          },
+          registrationApprovedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+          },
+        },
+        required: ['id', 'role', 'firstName', 'lastName', 'email', 'status'],
+      },
+      AdminUserRoleToggleResponse: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          role: { type: 'string', enum: ['USER', 'ADMIN'] },
+        },
+        required: ['id', 'role'],
+      },
+      AdminUserDeleteResponse: {
+        type: 'object',
+        properties: {
+          deleted: { type: 'boolean' },
+        },
+        required: ['deleted'],
+      },
+      AdminUserDetailResponse: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          status: { $ref: '#/components/schemas/RegistrationStatus' },
+          motivations: { type: 'string', nullable: true },
+          academicBackground: { type: 'string', nullable: true },
+          professionalExperience: { type: 'string', nullable: true },
+        },
+        required: ['id', 'name', 'email', 'status'],
+      },
       AdminRejectRequest: {
         type: 'object',
         properties: {
@@ -513,6 +565,35 @@ export const swaggerDocument = {
           description: { type: 'string', nullable: true },
           isActive: { type: 'boolean' },
         },
+      },
+      Institution: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+          domain: { type: 'string', example: '@example.com' },
+          secondaryDomain: {
+            type: 'string',
+            nullable: true,
+            example: '@sub.example.com',
+          },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: ['id', 'name', 'domain', 'createdAt', 'updatedAt'],
+      },
+      InstitutionPayload: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          domain: { type: 'string', example: '@example.com' },
+          secondaryDomain: {
+            type: 'string',
+            nullable: true,
+            example: '@sub.example.com',
+          },
+        },
+        required: ['name', 'domain'],
       },
       Media: {
         type: 'object',
@@ -934,6 +1015,218 @@ export const swaggerDocument = {
               'application/json': {
                 schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
                 example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/admin/users': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Listar todos os usuários do sistema (ADMIN)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de usuários para painel administrativo',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/AdminUserListItem' },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/admin/users/{userId}': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Buscar usuário por id (ADMIN)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'userId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Detalhes do usuário',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/AdminUserDetailResponse' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Usuário não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'USER_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Admin'],
+        summary: 'Excluir usuário e dados de candidatura/revisão (ADMIN)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'userId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Usuário removido com sucesso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/AdminUserDeleteResponse' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Usuário não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'USER_NOT_FOUND' },
+              },
+            },
+          },
+          '409': {
+            description: 'Operação inválida para o próprio admin autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'SELF_DELETE_NOT_ALLOWED' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/admin/users/{userId}/role': {
+      patch: {
+        tags: ['Admin'],
+        summary: 'Alternar role entre USER e ADMIN',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'userId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Role atualizada com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/AdminUserRoleToggleResponse',
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Usuário não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'USER_NOT_FOUND' },
+              },
+            },
+          },
+          '409': {
+            description: 'Operação inválida para o próprio admin autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'SELF_ROLE_CHANGE_NOT_ALLOWED' },
               },
             },
           },
@@ -2435,6 +2728,258 @@ export const swaggerDocument = {
               'application/json': {
                 schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
                 example: { code: 'TAG_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/institutions': {
+      get: {
+        tags: ['Institutions'],
+        summary: 'Listar instituições',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de instituições',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/Institution' },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Institutions'],
+        summary: 'Criar instituição',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/InstitutionPayload' },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Instituição criada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Institution' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/institutions/{id}': {
+      get: {
+        tags: ['Institutions'],
+        summary: 'Buscar instituição por ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Instituição encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Institution' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Instituição não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INSTITUTION_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ['Institutions'],
+        summary: 'Atualizar instituição',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/InstitutionPayload' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Instituição atualizada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Institution' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Instituição não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INSTITUTION_NOT_FOUND' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Institutions'],
+        summary: 'Remover instituição',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '204': { description: 'Instituição removida' },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+          '403': {
+            description: 'Acesso restrito para ADMIN',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'FORBIDDEN' },
+              },
+            },
+          },
+          '404': {
+            description: 'Instituição não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'INSTITUTION_NOT_FOUND' },
               },
             },
           },

@@ -2,12 +2,19 @@ import { Request, Response, Router } from 'express'
 import { AppError } from '../../application/common/app-error'
 import {
   approveRegistration,
+  deleteUserByAdmin,
   ensureAdminRole,
+  getUserByIdForAdmin,
   listRegistrationsForAdmin,
+  listUsersForAdmin,
   rejectRegistration,
+  toggleUserRoleByAdmin,
 } from '../../application/registration/registration-service'
 import { REGISTRATION_STATUSES } from '../../domain/registration/enums'
-import { getAuthContext, requireAuth } from '../../interface/http/middlewares/auth-jwt'
+import {
+  getAuthContext,
+  requireAuth,
+} from '../../interface/http/middlewares/auth-jwt'
 import { validateRejectInput } from '../../application/registration/registration-validation'
 import { requireParam } from '../../utils/request-params'
 import { listMediaForAdmin } from '../../application/media/media-service'
@@ -45,6 +52,77 @@ const parseMediaFilters = (query: Record<string, unknown>) => {
 
   return { kind, status }
 }
+
+adminRegistrationsRouter.get(
+  '/users',
+  requireAuth,
+  async (_req: Request, res: Response) => {
+    try {
+      const { role } = getAuthContext(res)
+      ensureAdminRole(role)
+
+      const response = await listUsersForAdmin()
+
+      return res.status(200).json(response)
+    } catch (error) {
+      return handleError(res, error)
+    }
+  }
+)
+
+adminRegistrationsRouter.patch(
+  '/users/:userId/role',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const { role, userId: adminUserId } = getAuthContext(res)
+      ensureAdminRole(role)
+
+      const targetUserId = requireParam(req.params.userId)
+      const response = await toggleUserRoleByAdmin(targetUserId, adminUserId)
+
+      return res.status(200).json(response)
+    } catch (error) {
+      return handleError(res, error)
+    }
+  }
+)
+
+adminRegistrationsRouter.delete(
+  '/users/:userId',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const { role, userId: adminUserId } = getAuthContext(res)
+      ensureAdminRole(role)
+
+      const targetUserId = requireParam(req.params.userId)
+      const response = await deleteUserByAdmin(targetUserId, adminUserId)
+
+      return res.status(200).json(response)
+    } catch (error) {
+      return handleError(res, error)
+    }
+  }
+)
+
+adminRegistrationsRouter.get(
+  '/users/:userId',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const { role } = getAuthContext(res)
+      ensureAdminRole(role)
+
+      const targetUserId = requireParam(req.params.userId)
+      const response = await getUserByIdForAdmin(targetUserId)
+
+      return res.status(200).json(response)
+    } catch (error) {
+      return handleError(res, error)
+    }
+  }
+)
 
 adminRegistrationsRouter.get(
   '/registrations',
@@ -128,7 +206,9 @@ adminRegistrationsRouter.get(
       const { role } = getAuthContext(res)
       ensureAdminRole(role)
 
-      const { page, limit } = parsePagination(req.query as Record<string, unknown>)
+      const { page, limit } = parsePagination(
+        req.query as Record<string, unknown>
+      )
       const filters = parseMediaFilters(req.query as Record<string, unknown>)
 
       const response = await listMediaForAdmin({

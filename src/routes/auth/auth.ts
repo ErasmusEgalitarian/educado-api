@@ -13,7 +13,10 @@ import {
   validateLoginInput,
   validateRegistrationProfileInput,
 } from '../../application/registration/registration-validation'
-import { getAuthContext, requireAuth } from '../../interface/http/middlewares/auth-jwt'
+import {
+  getAuthContext,
+  requireAuth,
+} from '../../interface/http/middlewares/auth-jwt'
 
 export const authRouter = Router()
 
@@ -123,7 +126,10 @@ authRouter.put(
 
       const response = await submitRegistrationProfile(userId, validation.data)
 
-      return res.status(200).json(response)
+      const statusCode =
+        response.nextAction === 'CONFIRM_EMAIL_CODE' ? 202 : 200
+
+      return res.status(statusCode).json(response)
     } catch (error) {
       return handleError(req, res, error)
     }
@@ -147,7 +153,10 @@ authRouter.put(
       const { userId } = getAuthContext(res)
       const response = await submitRegistrationProfile(userId, validation.data)
 
-      return res.status(200).json(response)
+      const statusCode =
+        response.nextAction === 'CONFIRM_EMAIL_CODE' ? 202 : 200
+
+      return res.status(statusCode).json(response)
     } catch (error) {
       return handleError(req, res, error)
     }

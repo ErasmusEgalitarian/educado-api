@@ -11,6 +11,8 @@ import { RegistrationReview } from './registration-review.model'
 import { Tag } from './tag.model'
 import { CourseTag } from './course-tag.model'
 import { MediaAsset } from './media-asset.model'
+import { Institution } from './institution.model'
+import { EmailVerification } from './email-verification.model'
 
 // Define all associations here to avoid circular dependency issues
 
@@ -42,6 +44,10 @@ User.hasMany(RegistrationReview, {
 User.hasMany(RegistrationReview, {
   foreignKey: 'reviewedBy',
   as: 'reviewsGiven',
+})
+User.hasMany(EmailVerification, {
+  foreignKey: 'userId',
+  as: 'emailVerifications',
 })
 
 // Section relationships
@@ -91,6 +97,7 @@ RegistrationProfile.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 RegistrationReview.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 RegistrationReview.belongsTo(User, { foreignKey: 'reviewedBy', as: 'reviewer' })
 MediaAsset.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' })
+EmailVerification.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 
 export {
   User,
@@ -105,4 +112,6 @@ export {
   Tag,
   CourseTag,
   MediaAsset,
+  Institution,
+  EmailVerification,
 }

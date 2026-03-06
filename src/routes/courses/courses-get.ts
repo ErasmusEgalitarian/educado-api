@@ -47,7 +47,15 @@ export const coursesList = async (req: Request, res: Response) => {
       order: [['createdAt', 'DESC']],
     })
 
-    res.json(courses)
+    return res.json(
+      courses.map((course) => {
+        const data = course.toJSON() as Record<string, unknown>
+        return {
+          ...data,
+          ownerId: course.ownerId,
+        }
+      })
+    )
   } catch (error) {
     return handleError(res, error)
   }

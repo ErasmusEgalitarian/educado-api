@@ -1,168 +1,302 @@
 # educado-api
 
-Backend API for the Educado application built with Express, TypeScript, and PostgreSQL.
+Backend REST API do Educado — plataforma de educacao para criadores de conteudo e alunos.
 
-## Tech Stack
+## Stack
 
-- **Node.js** with Express
-- **TypeScript**
-- **PostgreSQL** database
-- **Sequelize** ORM
-
-## Prerequisites
-
-- Node.js (v14 or higher)
-- PostgreSQL database (local or hosted)
+- **Node.js 20** + Express.js
+- **TypeScript** (strict mode)
+- **PostgreSQL 16** (Sequelize ORM)
+- **MinIO** (S3-compatible, armazenamento de midia)
+- **Redis 7** + BullMQ (fila de emails)
+- **Resend** (provedor de email)
+- **JWT** (autenticacao)
+- **bcryptjs** (hashing de senhas)
+- **Jest** + ts-jest (testes)
 
 ## Setup
 
-1. Install dependencies:
+### Docker Compose (recomendado)
+
 ```bash
-npm install
+cp .env.example .env     # Editar com suas credenciais
+sudo docker compose up -d --build
 ```
 
-2. Create a `.env` file based on `.env.example`:
+Sobe: API (5001), PostgreSQL (5431), Redis (6379), MinIO (9000/9001), email worker.
+
+O bucket `educado-media` e criado automaticamente pelo servico `minio-setup`.
+
+### Desenvolvimento Local
+
 ```bash
 cp .env.example .env
+npm install
+sudo docker compose up -d postgres redis minio minio-setup   # Apenas dependencias
+npm run dev                                                    # API com hot reload
 ```
 
-3. Update the `.env` file with your PostgreSQL connection string:
-```
-POSTGRES_URI=postgresql://username:password@localhost:5432/educado_dev
-PORT=5001
-```
+## Comandos
 
-### Setting up PostgreSQL
+| Comando | Descricao |
+|---------|-----------|
+| `npm run dev` | Servidor com hot reload (nodemon) |
+| `npm run build` | Compila TypeScript para `build/` |
+| `npm start` | Inicia servidor compilado |
+| `npm test` | Roda todos os testes |
+| `npm run test:watch` | Testes em modo watch |
+| `npm run test:coverage` | Testes com relatorio de cobertura |
+| `npm run lint` | ESLint |
+| `npm run lint:fix` | ESLint com auto-fix |
+| `npm run seed` | Popula banco com cursos de exemplo |
 
-#### Option 1: Local PostgreSQL
-Install PostgreSQL locally and create a database:
-```bash
-# On macOS with Homebrew
-brew install postgresql
-brew services start postgresql
-
-# Create database
-createdb educado_dev
-```
-
-#### Option 2: Hosted PostgreSQL (Neon, Supabase, etc.)
-- Sign up for a PostgreSQL hosting service (e.g., [Neon](https://neon.tech/), [Supabase](https://supabase.com/))
-- Create a new database
-- Copy the connection string to your `.env` file
-
-## Running the Application
-
-### Development Mode
-```bash
-npm run dev
-```
-
-### Production Build
-```bash
-npm run build
-npm start
-```
-
-## API Documentation
-
-Swagger UI is available at:
+### Checklist obrigatorio antes de qualquer entrega
 
 ```bash
-http://localhost:5000/docs
+npm run lint && npm test && npx tsc --noEmit
 ```
 
-If you are using a custom `PORT` in `.env`, replace `5000` with your configured port.
-
-## Project Structure
+## Arquitetura
 
 ```
 src/
-├── config/
-│   └── database.ts         # Sequelize database configuration
-├── models/
-│   ├── index.ts           # Model exports and associations
-│   └── user.model.ts      # User model
-├── routes/
-│   └── user/              # User routes
-├── types/
-│   └── user-types/        # TypeScript types
-└── index.ts               # Application entry point
+  application/           # Logica de negocio
+    registration/        # Registro, login, aprovacao
+    password-reset/      # Redefinicao de senha (OTP 4 digitos)
+    verification/        # Verificacao de email (OTP 6 digitos)
+    media/               # Upload, listagem, acesso a midia
+    courses/             # Validacao e acesso a cursos
+    activities/          # Validacao e payload de atividades
+    email/               # Templates de email
+    tags/                # Validacao de tags
+    institutions/        # Validacao de instituicoes
+    common/              # AppError
+  config/                # Database (Sequelize), JWT
+  domain/                # Enums (RegistrationStatus, UserRole)
+  infrastructure/
+    storage/s3/          # MinIO/S3 client
+    security/            # bcrypt password hasher
+    email/               # Resend provider + factory
+    queue/               # Redis + BullMQ
+  interface/http/
+    middlewares/          # auth-jwt, request-id, require-https
+  models/                # 16 Sequelize models
+  routes/                # 13 modulos de rotas Express
+  types/                 # TypeScript types
+  workers/               # Email worker (BullMQ)
 ```
 
-## Database
+### Camadas
 
-The application uses Sequelize ORM with PostgreSQL. On startup, it will:
-1. Test the database connection
-2. Sync all models (create tables if they don't exist)
+| Camada | Responsabilidade |
+|--------|------------------|
+| **routes/** | Thin controllers — req/res, validacao, chama servico |
+| **application/** | Logica de negocio pura, sem acesso a req/res |
+| **models/** | Sequelize ORM, associacoes em `index.ts` |
+| **infrastructure/** | Servicos externos (S3, email, Redis, bcrypt) |
+| **interface/** | Middleware Express (auth, request-id) |
 
-**Note:** To reset the database, change `syncDatabase(false)` to `syncDatabase(true)` in `src/index.ts`. This will drop all tables and recreate them. Use with caution!
+## Models
 
-## Adding New Models
+| Model | Tabela | Descricao |
+|-------|--------|-----------|
+| User | users | Usuarios (nome, email, senha, role, avatar) |
+| Course | courses | Cursos (titulo, descricao, dificuldade, imagem) |
+| Section | sections | Secoes de um curso (titulo, video, thumbnail) |
+| Activity | activities | Atividades (video, texto, multipla escolha, V/F) |
+| CourseProgress | course_progress | Progresso do aluno no curso |
+| SectionProgress | section_progress | Progresso do aluno na secao |
+| Certificate | certificates | Certificados emitidos |
+| MediaAsset | media_assets | Metadados de midia (s3Key, tipo, tamanho) |
+| RegistrationProfile | registration_profiles | Perfil de registro (motivacoes, formacao) |
+| RegistrationReview | registration_reviews | Revisao admin (aprovar/rejeitar) |
+| PasswordReset | password_resets | Tokens de reset de senha |
+| EmailVerification | email_verifications | Tokens de verificacao de email |
+| Tag | tags | Tags reutilizaveis |
+| CourseTag | course_tags | Relacao curso-tag |
+| Institution | institutions | Instituicoes com dominios confiáveis |
 
-1. Create a new model file in `src/models/` (e.g., `post.model.ts`)
-2. Define the model using Sequelize:
-```typescript
-import { DataTypes, Model } from 'sequelize'
-import { sequelize } from '../config/database'
+## API Endpoints
 
-export class Post extends Model {
-  declare id: string
-  declare title: string
-  declare content: string
-  declare userId: string
-  declare createdAt: Date
-  declare updatedAt: Date
-}
+### Autenticacao (`/auth`)
 
-Post.init(
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    content: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    userId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: 'user',
-        key: 'id',
-      },
-    },
-  },
-  {
-    sequelize,
-    modelName: 'post',
-    tableName: 'post',
-    timestamps: true,
-  }
-)
+```
+POST   /auth/registrations                  # Registrar
+PUT    /auth/registrations/:userId/profile   # Submeter perfil
+PUT    /auth/registrations/me/profile        # Atualizar perfil (auth)
+GET    /auth/registrations/me/status         # Status do registro (auth)
+POST   /auth/login                           # Login
+POST   /auth/password-reset/request          # Solicitar reset
+POST   /auth/password-reset/verify           # Verificar OTP
+POST   /auth/password-reset/reset            # Redefinir senha
 ```
 
-3. Add associations in `src/models/index.ts`:
-```typescript
-import { User } from './user.model'
-import { Post } from './post.model'
+### Perfil (`/me`)
 
-// Define associations
-User.hasMany(Post, { foreignKey: 'userId', as: 'posts' })
-Post.belongsTo(User, { foreignKey: 'userId', as: 'user' })
-
-export { User, Post }
+```
+GET    /me/profile              # Obter perfil
+PUT    /me/profile              # Atualizar perfil
+PUT    /me/avatar               # Definir avatar (mediaId)
+DELETE /me/avatar               # Remover avatar
+DELETE /me/account              # Deletar conta
+GET    /me/courses              # Meus cursos
+GET    /me/media                # Minhas midias
+POST   /me/password/request-code # Codigo para alterar senha
 ```
 
-## Scripts
+### Cursos (`/courses`)
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint errors
+```
+GET    /courses          # Listar (filtros: status, category, difficulty)
+GET    /courses/:id      # Obter com secoes e atividades
+POST   /courses          # Criar
+PUT    /courses/:id      # Atualizar
+POST   /courses/:id/activate    # Ativar
+POST   /courses/:id/deactivate  # Desativar
+DELETE /courses/:id      # Deletar
+```
+
+### Secoes (`/sections`)
+
+```
+GET    /sections          # Listar todas
+GET    /sections/:id      # Obter secao
+POST   /sections          # Criar
+PUT    /sections/:id      # Atualizar
+DELETE /sections/:id      # Deletar
+```
+
+### Atividades (`/activities`)
+
+```
+GET    /activities/section/:sectionId  # Listar por secao
+POST   /activities                     # Criar
+PUT    /activities/:id                 # Atualizar
+DELETE /activities/:id                 # Deletar
+```
+
+### Midia (`/media`)
+
+```
+POST   /media/images              # Upload imagem (max 10MB)
+POST   /media/videos              # Upload video (max 500MB)
+GET    /media/:id/stream           # Stream (aceita ?token=jwt)
+GET    /media/images/:id           # Metadados imagem
+GET    /media/videos/:id           # Metadados video
+POST   /media/images/:id/metadata  # Criar metadados
+PUT    /media/images/:id/metadata  # Atualizar metadados
+DELETE /media/images/:id           # Deletar imagem
+DELETE /media/videos/:id           # Deletar video
+```
+
+### Administracao (`/admin`)
+
+```
+GET    /admin/users                         # Listar usuarios
+GET    /admin/users/:userId                 # Detalhes
+DELETE /admin/users/:userId                 # Deletar
+PATCH  /admin/users/:userId/role            # Alternar USER/ADMIN
+GET    /admin/registrations?status=         # Cadastros por status
+POST   /admin/registrations/:userId/approve # Aprovar
+POST   /admin/registrations/:userId/reject  # Rejeitar
+```
+
+### Outros
+
+```
+GET/POST /tags                   # CRUD de tags
+GET/POST /institutions           # CRUD de instituicoes
+POST     /account/email-verification/send     # Enviar codigo
+POST     /account/email-verification/confirm  # Confirmar codigo
+GET/POST /progress               # Progresso de cursos
+GET      /certificates           # Certificados
+GET      /docs                   # Swagger UI
+```
+
+## Variaveis de Ambiente
+
+```env
+NODE_ENV=development
+PORT=5001
+
+# PostgreSQL
+POSTGRES_URI=postgresql://educado:educado@postgres:5432/educado_dev
+POSTGRES_URI_DEV=postgresql://educado:educado@localhost:5432/educado_dev
+
+# JWT
+ACCESS_TOKEN_SECRET=replace-with-a-strong-secret
+
+# S3 / MinIO
+S3_ENDPOINT=http://localhost:9000
+S3_REGION=us-east-1
+S3_ACCESS_KEY=minioadmin
+S3_SECRET_KEY=minioadmin
+S3_BUCKET=educado-media
+
+# Email (Resend)
+EMAIL_API_KEY=re_xxx
+EMAIL_FROM=noreply@educado.com
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Frontend (CORS)
+FRONTEND_ORIGIN=http://localhost:3000
+```
+
+Docker Compose sobrescreve `S3_ENDPOINT` para `http://minio:9000` e `POSTGRES_URI_DEV` para `postgresql://educado:educado@postgres:5432/educado_dev`.
+
+## Testes
+
+```bash
+npm test                          # Todos os testes
+npm run test:coverage             # Com cobertura
+npx jest src/application/media    # Modulo especifico
+```
+
+### Cobertura
+
+| Metrica | Valor |
+|---------|-------|
+| Suites | 23 |
+| Testes | 413 |
+| Statements | 98.6% |
+| Branches | 96.5% |
+| Functions | 100% |
+| Lines | 99.0% |
+
+Todos os 24 arquivos com cobertura individual acima de 80%.
+
+### Estrutura de testes
+
+```
+src/application/registration/__tests__/registration-service.test.ts
+src/application/registration/__tests__/registration-validation.test.ts
+src/application/password-reset/__tests__/password-reset-service.test.ts
+src/application/verification/__tests__/email-verification-service.test.ts
+src/application/media/__tests__/media-service.test.ts
+src/application/courses/__tests__/course-validation.test.ts
+src/infrastructure/storage/s3/__tests__/s3-client.test.ts
+src/interface/http/middlewares/__tests__/auth-jwt.test.ts
+...
+```
+
+## Banco de Dados
+
+O Sequelize sincroniza automaticamente na inicializacao (`sequelize.sync()`). Sem migration files.
+
+Para resetar (CUIDADO — apaga tudo):
+```bash
+# Via Docker
+sudo docker compose exec postgres psql -U educado -d educado_dev -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+sudo docker compose restart api
+```
+
+## Documentacao da API
+
+Swagger UI disponivel em `http://localhost:5001/docs`.
+
+## Licenca
+
+ISC

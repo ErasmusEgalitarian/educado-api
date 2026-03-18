@@ -3,6 +3,8 @@ import { Request, Response } from 'express'
 import { Section } from '../../models/section.model'
 
 const MEDIA_ID_REGEX = /^[a-f\d]{24}$/i
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const isValidMediaId = (id: string) => MEDIA_ID_REGEX.test(id) || UUID_REGEX.test(id)
 
 type SectionPayload = {
   id?: string
@@ -76,7 +78,7 @@ const validateSectionPayload = (
     body.videoMediaId !== undefined ||
     (!partial && videoMediaId !== null)
   ) {
-    if (videoMediaId && !MEDIA_ID_REGEX.test(videoMediaId)) {
+    if (videoMediaId && !isValidMediaId(videoMediaId)) {
       fieldErrors.videoMediaId = 'INVALID'
     }
   }
@@ -85,7 +87,7 @@ const validateSectionPayload = (
     body.thumbnailMediaId !== undefined ||
     (!partial && thumbnailMediaId !== null)
   ) {
-    if (thumbnailMediaId && !MEDIA_ID_REGEX.test(thumbnailMediaId)) {
+    if (thumbnailMediaId && !isValidMediaId(thumbnailMediaId)) {
       fieldErrors.thumbnailMediaId = 'INVALID'
     }
   }

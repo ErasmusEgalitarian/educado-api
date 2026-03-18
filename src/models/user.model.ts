@@ -13,6 +13,7 @@ export class User extends Model {
   declare role: (typeof USER_ROLES)[number]
   declare lastLoginAt: Date | null
   declare username: string | null
+  declare avatarMediaId: string | null
   declare createdAt: Date
   declare updatedAt: Date
 }
@@ -63,6 +64,14 @@ User.init(
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
+    },
+    avatarMediaId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'media_assets',
+        key: 'id',
+      },
     },
   },
   {

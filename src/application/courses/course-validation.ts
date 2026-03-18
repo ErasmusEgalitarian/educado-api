@@ -2,6 +2,8 @@ type FieldErrors = Record<string, string>
 
 type Difficulty = 'beginner' | 'intermediate' | 'advanced'
 const MEDIA_ID_REGEX = /^[a-f\d]{24}$/i
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const isValidMediaId = (id: string) => MEDIA_ID_REGEX.test(id) || UUID_REGEX.test(id)
 
 export type CoursePayload = {
   title: string
@@ -87,7 +89,7 @@ export const validateCoursePayload = (
   if (!partial || body.imageMediaId !== undefined) {
     if (!imageMediaId) {
       fieldErrors.imageMediaId = 'REQUIRED'
-    } else if (!MEDIA_ID_REGEX.test(imageMediaId)) {
+    } else if (!isValidMediaId(imageMediaId)) {
       fieldErrors.imageMediaId = 'INVALID'
     }
   }

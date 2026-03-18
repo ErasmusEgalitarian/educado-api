@@ -9,6 +9,10 @@ import stream from './stream'
 
 const router = Router()
 
+// Stream route supports token via query param (for <img> tags)
+// so it's mounted before requireAuth
+router.use(stream)
+
 router.use(requireAuth)
 
 router.use(uploadImage)
@@ -16,6 +20,5 @@ router.use(uploadVideo)
 router.use(getImage)
 router.use(getVideo)
 router.use(updateMetadata)
-router.use(stream)
 
 export default router

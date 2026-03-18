@@ -9,7 +9,7 @@ export interface MediaDocument {
   filename: string
   contentType: string
   size: number
-  gridFsId: string
+  s3Key: string
   status: MediaStatus
   createdAt: Date
   updatedAt: Date

@@ -103,8 +103,12 @@
   },
   "compileonsave": true,
   "include": [
-    "src",
-    "**/*.ts",
-    "**/*.tsx",
+    "src"
   ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "jest.config.ts",
+    "**/*.test.ts"
+  ]
 }

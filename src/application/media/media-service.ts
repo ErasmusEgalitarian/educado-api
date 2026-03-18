@@ -1,16 +1,14 @@
-import { ObjectId } from 'mongodb'
-import { getGridFSBucket } from '../../infrastructure/storage/mongo/gridfs-bucket'
-import { getMongoDb } from '../../infrastructure/storage/mongo/mongo-client'
-import { MediaDocument, MediaKind } from '../../types/media/media'
+import { MediaAsset } from '../../models'
+import { uploadToS3 } from '../../infrastructure/storage/s3/s3-client'
 
 type CreateMediaInput = {
   ownerId: string
-  kind: MediaKind
+  kind: 'image' | 'video'
   file: Express.Multer.File
 }
 
 type ListMediaFilters = {
-  kind?: MediaKind
+  kind?: 'image' | 'video'
   status?: 'ACTIVE' | 'INACTIVE'
 }
 
@@ -19,125 +17,93 @@ type ListMediaOptions = ListMediaFilters & {
   limit: number
 }
 
-type StoredMediaDocument = Omit<MediaDocument, '_id'> & {
-  _id: ObjectId
-}
+export const uploadMedia = async ({ ownerId, kind, file }: CreateMediaInput) => {
+  const s3Key = await uploadToS3(file, ownerId, kind)
 
-type ListMediaResponse = {
-  items: MediaDocument[]
-  page: number
-  limit: number
-  total: number
-}
-
-const normalizeMedia = (doc: StoredMediaDocument): MediaDocument => {
-  return {
-    _id: doc._id.toHexString(),
-    ownerId: doc.ownerId,
-    kind: doc.kind,
-    filename: doc.filename,
-    contentType: doc.contentType,
-    size: doc.size,
-    gridFsId: doc.gridFsId,
-    status: doc.status,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-  }
-}
-
-const buildFilters = (filters?: ListMediaFilters) => {
-  return {
-    ...(filters?.kind ? { kind: filters.kind } : {}),
-    ...(filters?.status ? { status: filters.status } : {}),
-  }
-}
-
-export const uploadMedia = async ({
-  ownerId,
-  kind,
-  file,
-}: CreateMediaInput): Promise<MediaDocument> => {
-  const bucket = getGridFSBucket()
-  const gridId = new ObjectId()
-
-  await new Promise<void>((resolve, reject) => {
-    const uploadStream = bucket.openUploadStreamWithId(gridId, file.originalname, {
-      metadata: { ownerId, kind },
-    })
-
-    uploadStream.on('error', reject)
-    uploadStream.on('finish', () => resolve())
-    uploadStream.end(file.buffer)
-  })
-
-  const doc: Omit<MediaDocument, '_id'> = {
+  const media = await MediaAsset.create({
     ownerId,
     kind,
+    s3Key,
     filename: file.originalname,
     contentType: file.mimetype,
     size: file.size,
-    gridFsId: gridId.toHexString(),
     status: 'ACTIVE',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
-
-  const result = await getMongoDb().collection<Omit<MediaDocument, '_id'>>('media').insertOne(doc)
+    title: '',
+    altText: '',
+    description: '',
+  })
 
   return {
-    _id: result.insertedId.toHexString(),
-    ...doc,
+    _id: media.id,
+    id: media.id,
+    ownerId: media.ownerId,
+    kind: media.kind,
+    filename: media.filename,
+    contentType: media.contentType,
+    size: media.size,
+    gridFsId: media.id, // backward compat -- frontend uses _id ?? gridFsId
+    status: media.status,
+    createdAt: media.createdAt,
+    updatedAt: media.updatedAt,
   }
 }
 
-export const listMediaByOwner = async (
-  ownerId: string,
-  options: ListMediaOptions
-): Promise<ListMediaResponse> => {
-  const collection = getMongoDb().collection<StoredMediaDocument>('media')
-  const filters = {
-    ownerId,
-    ...buildFilters(options),
-  }
+export const listMediaByOwner = async (ownerId: string, options: ListMediaOptions) => {
+  const where: Record<string, unknown> = { ownerId }
+  if (options.kind) where.kind = options.kind
+  if (options.status) where.status = options.status
 
-  const [items, total] = await Promise.all([
-    collection
-      .find(filters)
-      .sort({ createdAt: -1 })
-      .skip((options.page - 1) * options.limit)
-      .limit(options.limit)
-      .toArray(),
-    collection.countDocuments(filters),
-  ])
+  const { rows: items, count: total } = await MediaAsset.findAndCountAll({
+    where,
+    order: [['createdAt', 'DESC']],
+    offset: (options.page - 1) * options.limit,
+    limit: options.limit,
+  })
 
   return {
-    items: items.map(normalizeMedia),
+    items: items.map(normalizeMediaAsset),
     page: options.page,
     limit: options.limit,
     total,
   }
 }
 
-export const listMediaForAdmin = async (
-  options: ListMediaOptions
-): Promise<ListMediaResponse> => {
-  const collection = getMongoDb().collection<StoredMediaDocument>('media')
-  const filters = buildFilters(options)
+export const listMediaForAdmin = async (options: ListMediaOptions) => {
+  const where: Record<string, unknown> = {}
+  if (options.kind) where.kind = options.kind
+  if (options.status) where.status = options.status
 
-  const [items, total] = await Promise.all([
-    collection
-      .find(filters)
-      .sort({ createdAt: -1 })
-      .skip((options.page - 1) * options.limit)
-      .limit(options.limit)
-      .toArray(),
-    collection.countDocuments(filters),
-  ])
+  const { rows: items, count: total } = await MediaAsset.findAndCountAll({
+    where,
+    order: [['createdAt', 'DESC']],
+    offset: (options.page - 1) * options.limit,
+    limit: options.limit,
+  })
 
   return {
-    items: items.map(normalizeMedia),
+    items: items.map(normalizeMediaAsset),
     page: options.page,
     limit: options.limit,
     total,
+  }
+}
+
+function normalizeMediaAsset(asset: MediaAsset) {
+  return {
+    _id: asset.id,
+    id: asset.id,
+    ownerId: asset.ownerId,
+    kind: asset.kind,
+    filename: asset.filename,
+    contentType: asset.contentType,
+    size: asset.size,
+    gridFsId: asset.id,
+    status: asset.status,
+    title: asset.title,
+    altText: asset.altText,
+    description: asset.description,
+    streamUrl: `/media/${asset.id}/stream`,
+    createdAt: asset.createdAt,
+    updatedAt: asset.updatedAt,
   }
 }

@@ -13,6 +13,7 @@ import { CourseTag } from './course-tag.model'
 import { MediaAsset } from './media-asset.model'
 import { Institution } from './institution.model'
 import { EmailVerification } from './email-verification.model'
+import { PasswordReset } from './password-reset.model'
 
 // Define all associations here to avoid circular dependency issues
 
@@ -48,6 +49,10 @@ User.hasMany(RegistrationReview, {
 User.hasMany(EmailVerification, {
   foreignKey: 'userId',
   as: 'emailVerifications',
+})
+User.hasMany(PasswordReset, {
+  foreignKey: 'userId',
+  as: 'passwordResets',
 })
 
 // Section relationships
@@ -97,7 +102,9 @@ RegistrationProfile.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 RegistrationReview.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 RegistrationReview.belongsTo(User, { foreignKey: 'reviewedBy', as: 'reviewer' })
 MediaAsset.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' })
+User.belongsTo(MediaAsset, { foreignKey: 'avatarMediaId', as: 'avatar' })
 EmailVerification.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+PasswordReset.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 
 export {
   User,
@@ -114,4 +121,5 @@ export {
   MediaAsset,
   Institution,
   EmailVerification,
+  PasswordReset,
 }

@@ -22,7 +22,6 @@ import { tagsRouter } from './routes/tags/tags'
 import { institutionsRouter } from './routes/institutions/institutions'
 import { requestIdMiddleware } from './interface/http/middlewares/request-id'
 import { requireHttpsInProduction } from './interface/http/middlewares/require-https'
-import { initMongo } from './infrastructure/storage/mongo/mongo-client'
 import mediaRoutes from './routes/media'
 import { emailVerificationRouter } from './routes/verification/email-verification'
 
@@ -99,8 +98,6 @@ const initializeDatabase = async () => {
 
 const startServer = async () => {
   await initializeDatabase()
-  await initMongo()
-
   // Initialize routes
   app.use(express.json())
   app.use('/user', userRouter)

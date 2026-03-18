@@ -2,6 +2,13 @@ import { Router, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import { AppError } from '../../application/common/app-error'
 import {
+  requestPasswordReset,
+  verifyPasswordResetCode,
+  resetPassword,
+} from '../../application/password-reset/password-reset-service'
+import { passwordResetCodeTemplate } from '../../application/email/templates/password-reset-code'
+import { createEmailService } from '../../infrastructure/email/email-factory'
+import {
   getRegistrationStatus,
   login,
   registerUser,
@@ -193,3 +200,113 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     return handleError(req, res, error)
   }
 })
+
+const passwordResetEmailService = createEmailService()
+
+authRouter.post(
+  '/password-reset/request',
+  async (req: Request, res: Response) => {
+    try {
+      const email =
+        typeof req.body?.email === 'string' ? req.body.email.trim() : ''
+
+      if (!email) {
+        return res.status(422).json({
+          code: 'VALIDATION_ERROR',
+          fieldErrors: { email: 'REQUIRED' },
+        })
+      }
+
+      const result = await requestPasswordReset(email)
+
+      if (result.code && result.email) {
+        const template = passwordResetCodeTemplate({
+          firstName: result.firstName,
+          code: result.code,
+        })
+
+        await passwordResetEmailService.sendEmail({
+          to: result.email,
+          subject: template.subject,
+          html: template.html,
+        })
+      }
+
+      return res.status(200).json({ sent: true })
+    } catch (error) {
+      return handleError(req, res, error)
+    }
+  }
+)
+
+authRouter.post(
+  '/password-reset/verify',
+  async (req: Request, res: Response) => {
+    try {
+      const email =
+        typeof req.body?.email === 'string' ? req.body.email.trim() : ''
+      const code =
+        typeof req.body?.code === 'string' ? req.body.code.trim() : ''
+
+      if (!email || !code) {
+        return res.status(422).json({
+          code: 'VALIDATION_ERROR',
+          fieldErrors: {
+            ...(!email ? { email: 'REQUIRED' } : {}),
+            ...(!code ? { code: 'REQUIRED' } : {}),
+          },
+        })
+      }
+
+      const result = await verifyPasswordResetCode(email, code)
+      return res.status(200).json(result)
+    } catch (error) {
+      return handleError(req, res, error)
+    }
+  }
+)
+
+authRouter.post(
+  '/password-reset/reset',
+  async (req: Request, res: Response) => {
+    try {
+      const email =
+        typeof req.body?.email === 'string' ? req.body.email.trim() : ''
+      const code =
+        typeof req.body?.code === 'string' ? req.body.code.trim() : ''
+      const newPassword =
+        typeof req.body?.newPassword === 'string'
+          ? req.body.newPassword.trim()
+          : ''
+      const confirmPassword =
+        typeof req.body?.confirmPassword === 'string'
+          ? req.body.confirmPassword.trim()
+          : ''
+
+      const fieldErrors: Record<string, string> = {}
+      if (!email) fieldErrors.email = 'REQUIRED'
+      if (!code) fieldErrors.code = 'REQUIRED'
+      if (!newPassword) fieldErrors.newPassword = 'REQUIRED'
+      if (!confirmPassword) fieldErrors.confirmPassword = 'REQUIRED'
+
+      if (Object.keys(fieldErrors).length > 0) {
+        return res.status(422).json({
+          code: 'VALIDATION_ERROR',
+          fieldErrors,
+        })
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(422).json({
+          code: 'VALIDATION_ERROR',
+          fieldErrors: { confirmPassword: 'PASSWORD_MISMATCH' },
+        })
+      }
+
+      const result = await resetPassword(email, code, newPassword)
+      return res.status(200).json(result)
+    } catch (error) {
+      return handleError(req, res, error)
+    }
+  }
+)

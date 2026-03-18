@@ -256,6 +256,7 @@ export const login = async (input: { email: string; password: string }) => {
       email: user.email,
       role: user.role,
       status: user.status,
+      avatarMediaId: user.avatarMediaId,
     },
   }
 }
@@ -545,6 +546,37 @@ export const rejectRegistration = async (
   return {
     registrationStatus: result.registrationStatus,
   }
+}
+
+export const deleteOwnAccount = async (userId: string) => {
+  return sequelize.transaction(async (transaction) => {
+    const user = await User.findByPk(userId, { transaction })
+
+    if (!user) {
+      throw new AppError(404, { code: 'USER_NOT_FOUND' })
+    }
+
+    await RegistrationReview.destroy({
+      where: {
+        [Op.or]: [{ userId }, { reviewedBy: userId }],
+      },
+      transaction,
+    })
+
+    await RegistrationProfile.destroy({
+      where: { userId },
+      transaction,
+    })
+
+    await EmailVerification.destroy({
+      where: { userId },
+      transaction,
+    })
+
+    await user.destroy({ transaction })
+
+    return { deleted: true }
+  })
 }
 
 export const ensureAdminRole = (role: UserRole) => {

@@ -5,11 +5,14 @@ export class MediaAsset extends Model {
   declare id: string
   declare ownerId: string
   declare kind: 'image' | 'video'
-  declare mediaId: string
-  declare streamUrl: string
-  declare title: string
-  declare altText: string
-  declare description: string
+  declare s3Key: string
+  declare filename: string
+  declare contentType: string
+  declare size: number
+  declare status: 'ACTIVE' | 'INACTIVE'
+  declare title: string | null
+  declare altText: string | null
+  declare description: string | null
   declare createdAt: Date
   declare updatedAt: Date
 }
@@ -33,26 +36,39 @@ MediaAsset.init(
       type: DataTypes.ENUM('image', 'video'),
       allowNull: false,
     },
-    mediaId: {
+    s3Key: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
     },
-    streamUrl: {
-      type: DataTypes.TEXT,
+    filename: {
+      type: DataTypes.STRING,
       allowNull: false,
+    },
+    contentType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.ENUM('ACTIVE', 'INACTIVE'),
+      allowNull: false,
+      defaultValue: 'ACTIVE',
     },
     title: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     altText: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {
@@ -62,8 +78,8 @@ MediaAsset.init(
     timestamps: true,
     indexes: [
       {
-        name: 'media_asset_media_id_uq',
-        fields: ['mediaId'],
+        name: 'media_asset_s3_key_uq',
+        fields: ['s3Key'],
         unique: true,
       },
       {

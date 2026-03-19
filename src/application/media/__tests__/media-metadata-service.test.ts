@@ -6,7 +6,10 @@ jest.mock('../../../models', () => ({
 
 import { AppError } from '../../common/app-error'
 import { MediaAsset } from '../../../models'
-import { updateMediaMetadata, getMediaMetadata } from '../media-metadata-service'
+import {
+  updateMediaMetadata,
+  getMediaMetadata,
+} from '../media-metadata-service'
 
 describe('updateMediaMetadata', () => {
   it('should find by PK and update fields', async () => {

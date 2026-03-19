@@ -53,13 +53,17 @@ jest.mock('jsonwebtoken', () => ({
 }))
 
 import { AppError } from '../../common/app-error'
+import type { RegistrationStatus } from '../../../domain/registration/enums'
 import {
   User,
   RegistrationProfile,
   RegistrationReview,
   EmailVerification,
 } from '../../../models'
-import { hashPassword, verifyPassword } from '../../../infrastructure/security/password-hasher'
+import {
+  hashPassword,
+  verifyPassword,
+} from '../../../infrastructure/security/password-hasher'
 import {
   createEmailVerification,
   extractDomainFromEmail,
@@ -152,7 +156,10 @@ describe('login', () => {
     ;(User.findOne as jest.Mock).mockResolvedValue(user)
     ;(verifyPassword as jest.Mock).mockResolvedValue(true)
 
-    const result = await login({ email: 'test@example.com', password: 'Password1' })
+    const result = await login({
+      email: 'test@example.com',
+      password: 'Password1',
+    })
 
     expect(result.accessToken).toBe('mock-token')
     expect(result.user.id).toBe('user-1')
@@ -188,7 +195,9 @@ describe('login', () => {
   })
 
   it('should throw ACCOUNT_NOT_APPROVED when status is not APPROVED', async () => {
-    ;(User.findOne as jest.Mock).mockResolvedValue(mockUser({ status: 'PENDING_REVIEW' }))
+    ;(User.findOne as jest.Mock).mockResolvedValue(
+      mockUser({ status: 'PENDING_REVIEW' })
+    )
     ;(verifyPassword as jest.Mock).mockResolvedValue(true)
 
     try {
@@ -209,7 +218,9 @@ describe('login', () => {
       await login({ email: 'test@example.com', password: 'Password1' })
     } catch (e) {
       expect((e as AppError).statusCode).toBe(403)
-      expect((e as AppError).payload.code).toBe('REGISTRATION_PENDING_EMAIL_VERIFICATION')
+      expect((e as AppError).payload.code).toBe(
+        'REGISTRATION_PENDING_EMAIL_VERIFICATION'
+      )
     }
   })
 
@@ -228,7 +239,9 @@ describe('login', () => {
 
 describe('getRegistrationStatus', () => {
   it('should return status and reason', async () => {
-    ;(User.findByPk as jest.Mock).mockResolvedValue(mockUser({ status: 'REJECTED' }))
+    ;(User.findByPk as jest.Mock).mockResolvedValue(
+      mockUser({ status: 'REJECTED' })
+    )
     ;(RegistrationReview.findOne as jest.Mock).mockResolvedValue({
       reason: 'Incomplete profile',
     })
@@ -284,7 +297,9 @@ describe('submitRegistrationProfile', () => {
     const existingProfile = { update: jest.fn().mockResolvedValue(undefined) }
     const user = mockUser({ status: 'DRAFT_PROFILE' })
     ;(User.findByPk as jest.Mock).mockResolvedValue(user)
-    ;(RegistrationProfile.findOne as jest.Mock).mockResolvedValue(existingProfile)
+    ;(RegistrationProfile.findOne as jest.Mock).mockResolvedValue(
+      existingProfile
+    )
     ;(extractDomainFromEmail as jest.Mock).mockReturnValue('university.edu')
     ;(isTrustedDomain as jest.Mock).mockResolvedValue(true)
     ;(createEmailVerification as jest.Mock).mockResolvedValue({ code: '1234' })
@@ -312,7 +327,9 @@ describe('submitRegistrationProfile', () => {
   })
 
   it('should throw INVALID_STATUS_TRANSITION for wrong status', async () => {
-    ;(User.findByPk as jest.Mock).mockResolvedValue(mockUser({ status: 'APPROVED' }))
+    ;(User.findByPk as jest.Mock).mockResolvedValue(
+      mockUser({ status: 'APPROVED' })
+    )
 
     try {
       await submitRegistrationProfile('user-1', {
@@ -403,7 +420,7 @@ describe('listRegistrationsForAdmin', () => {
   it('should filter by status when provided', async () => {
     ;(User.findAll as jest.Mock).mockResolvedValue([])
 
-    await listRegistrationsForAdmin('PENDING_REVIEW' as any)
+    await listRegistrationsForAdmin('PENDING_REVIEW' as RegistrationStatus)
 
     expect(User.findAll).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -488,9 +505,9 @@ describe('toggleUserRoleByAdmin', () => {
   })
 
   it('should throw SELF_ROLE_CHANGE_NOT_ALLOWED when toggling self', async () => {
-    await expect(
-      toggleUserRoleByAdmin('admin-1', 'admin-1')
-    ).rejects.toThrow(AppError)
+    await expect(toggleUserRoleByAdmin('admin-1', 'admin-1')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await toggleUserRoleByAdmin('admin-1', 'admin-1')
@@ -534,9 +551,9 @@ describe('deleteUserByAdmin', () => {
   })
 
   it('should throw SELF_DELETE_NOT_ALLOWED when deleting self', async () => {
-    await expect(
-      deleteUserByAdmin('admin-1', 'admin-1')
-    ).rejects.toThrow(AppError)
+    await expect(deleteUserByAdmin('admin-1', 'admin-1')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await deleteUserByAdmin('admin-1', 'admin-1')
@@ -549,9 +566,9 @@ describe('deleteUserByAdmin', () => {
   it('should throw USER_NOT_FOUND when user does not exist', async () => {
     ;(User.findByPk as jest.Mock).mockResolvedValue(null)
 
-    await expect(
-      deleteUserByAdmin('nonexistent', 'admin-1')
-    ).rejects.toThrow(AppError)
+    await expect(deleteUserByAdmin('nonexistent', 'admin-1')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await deleteUserByAdmin('nonexistent', 'admin-1')
@@ -636,17 +653,19 @@ describe('approveRegistration', () => {
   it('should throw USER_NOT_FOUND when user does not exist', async () => {
     ;(User.findByPk as jest.Mock).mockResolvedValue(null)
 
-    await expect(
-      approveRegistration('nonexistent', 'admin-1')
-    ).rejects.toThrow(AppError)
+    await expect(approveRegistration('nonexistent', 'admin-1')).rejects.toThrow(
+      AppError
+    )
   })
 
   it('should throw INVALID_STATUS_TRANSITION for wrong status', async () => {
-    ;(User.findByPk as jest.Mock).mockResolvedValue(mockUser({ status: 'DRAFT_PROFILE' }))
+    ;(User.findByPk as jest.Mock).mockResolvedValue(
+      mockUser({ status: 'DRAFT_PROFILE' })
+    )
 
-    await expect(
-      approveRegistration('user-1', 'admin-1')
-    ).rejects.toThrow(AppError)
+    await expect(approveRegistration('user-1', 'admin-1')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await approveRegistration('user-1', 'admin-1')
@@ -694,7 +713,9 @@ describe('rejectRegistration', () => {
   })
 
   it('should throw INVALID_STATUS_TRANSITION for wrong status', async () => {
-    ;(User.findByPk as jest.Mock).mockResolvedValue(mockUser({ status: 'APPROVED' }))
+    ;(User.findByPk as jest.Mock).mockResolvedValue(
+      mockUser({ status: 'APPROVED' })
+    )
 
     await expect(
       rejectRegistration('user-1', 'admin-1', { reason: 'test' })

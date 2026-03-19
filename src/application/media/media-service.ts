@@ -17,7 +17,11 @@ type ListMediaOptions = ListMediaFilters & {
   limit: number
 }
 
-export const uploadMedia = async ({ ownerId, kind, file }: CreateMediaInput) => {
+export const uploadMedia = async ({
+  ownerId,
+  kind,
+  file,
+}: CreateMediaInput) => {
   const s3Key = await uploadToS3(file, ownerId, kind)
 
   const media = await MediaAsset.create({
@@ -48,7 +52,10 @@ export const uploadMedia = async ({ ownerId, kind, file }: CreateMediaInput) => 
   }
 }
 
-export const listMediaByOwner = async (ownerId: string, options: ListMediaOptions) => {
+export const listMediaByOwner = async (
+  ownerId: string,
+  options: ListMediaOptions
+) => {
   const where: Record<string, unknown> = { ownerId }
   if (options.kind) where.kind = options.kind
   if (options.status) where.status = options.status

@@ -31,7 +31,8 @@ export const testDatabaseConnection = async (): Promise<void> => {
 // Sync database (create tables if they don't exist)
 export const syncDatabase = async (force = false): Promise<void> => {
   try {
-    await sequelize.sync({ force })
+    const alter = !isProd() && !force
+    await sequelize.sync({ force, alter })
     console.log('Database synchronized successfully')
   } catch (error) {
     console.error('Error synchronizing database:', error)

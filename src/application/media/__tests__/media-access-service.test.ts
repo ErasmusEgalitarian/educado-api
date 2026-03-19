@@ -3,13 +3,19 @@ import { canAccessMedia } from '../media-access-service'
 describe('canAccessMedia', () => {
   it('should allow ADMIN to access any media', () => {
     expect(
-      canAccessMedia({ userId: 'admin-1', role: 'ADMIN' }, { ownerId: 'user-99' })
+      canAccessMedia(
+        { userId: 'admin-1', role: 'ADMIN' },
+        { ownerId: 'user-99' }
+      )
     ).toBe(true)
   })
 
   it('should allow ADMIN to access media even when ownerId does not match', () => {
     expect(
-      canAccessMedia({ userId: 'admin-1', role: 'ADMIN' }, { ownerId: 'admin-1' })
+      canAccessMedia(
+        { userId: 'admin-1', role: 'ADMIN' },
+        { ownerId: 'admin-1' }
+      )
     ).toBe(true)
   })
 
@@ -38,8 +44,8 @@ describe('canAccessMedia', () => {
   })
 
   it('should allow USER when both userId and ownerId are empty strings', () => {
-    expect(
-      canAccessMedia({ userId: '', role: 'USER' }, { ownerId: '' })
-    ).toBe(true)
+    expect(canAccessMedia({ userId: '', role: 'USER' }, { ownerId: '' })).toBe(
+      true
+    )
   })
 })

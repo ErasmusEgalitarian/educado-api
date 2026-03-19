@@ -271,11 +271,13 @@ describe('confirmEmailVerification', () => {
   })
 
   it('should throw VERIFICATION_NOT_ALLOWED_FOR_STATUS for wrong status', async () => {
-    ;(User.findByPk as jest.Mock).mockResolvedValue(mockUserObj({ status: 'APPROVED' }))
+    ;(User.findByPk as jest.Mock).mockResolvedValue(
+      mockUserObj({ status: 'APPROVED' })
+    )
 
-    await expect(
-      confirmEmailVerification('user-1', '123456')
-    ).rejects.toThrow(AppError)
+    await expect(confirmEmailVerification('user-1', '123456')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await confirmEmailVerification('user-1', '123456')
@@ -291,9 +293,9 @@ describe('confirmEmailVerification', () => {
     ;(User.findByPk as jest.Mock).mockResolvedValue(mockUserObj())
     ;(EmailVerification.findOne as jest.Mock).mockResolvedValue(null)
 
-    await expect(
-      confirmEmailVerification('user-1', '123456')
-    ).rejects.toThrow(AppError)
+    await expect(confirmEmailVerification('user-1', '123456')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await confirmEmailVerification('user-1', '123456')
@@ -309,9 +311,9 @@ describe('confirmEmailVerification', () => {
       mockVerification({ status: 'LOCKED' })
     )
 
-    await expect(
-      confirmEmailVerification('user-1', '123456')
-    ).rejects.toThrow(AppError)
+    await expect(confirmEmailVerification('user-1', '123456')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await confirmEmailVerification('user-1', '123456')
@@ -327,9 +329,9 @@ describe('confirmEmailVerification', () => {
       mockVerification({ status: 'EXPIRED' })
     )
 
-    await expect(
-      confirmEmailVerification('user-1', '123456')
-    ).rejects.toThrow(AppError)
+    await expect(confirmEmailVerification('user-1', '123456')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await confirmEmailVerification('user-1', '123456')
@@ -347,9 +349,9 @@ describe('confirmEmailVerification', () => {
       })
     )
 
-    await expect(
-      confirmEmailVerification('user-1', '123456')
-    ).rejects.toThrow(AppError)
+    await expect(confirmEmailVerification('user-1', '123456')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await confirmEmailVerification('user-1', '123456')
@@ -365,9 +367,9 @@ describe('confirmEmailVerification', () => {
     ;(EmailVerification.findOne as jest.Mock).mockResolvedValue(verification)
     ;(verifyPassword as jest.Mock).mockResolvedValue(false)
 
-    await expect(
-      confirmEmailVerification('user-1', '000000')
-    ).rejects.toThrow(AppError)
+    await expect(confirmEmailVerification('user-1', '000000')).rejects.toThrow(
+      AppError
+    )
 
     try {
       await confirmEmailVerification('user-1', '000000')
@@ -385,9 +387,9 @@ describe('confirmEmailVerification', () => {
     ;(EmailVerification.findOne as jest.Mock).mockResolvedValue(verification)
     ;(verifyPassword as jest.Mock).mockResolvedValue(false)
 
-    await expect(
-      confirmEmailVerification('user-1', '000000')
-    ).rejects.toThrow(AppError)
+    await expect(confirmEmailVerification('user-1', '000000')).rejects.toThrow(
+      AppError
+    )
 
     expect(verification.update).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'LOCKED', attempts: 5 }),

@@ -9,7 +9,8 @@ const handleError = (res: Response, error: unknown) => {
   if (
     error instanceof Error &&
     'name' in error &&
-    (error as { name?: string }).name === 'SequelizeForeignKeyConstraintError' &&
+    (error as { name?: string }).name ===
+      'SequelizeForeignKeyConstraintError' &&
     'table' in error &&
     (error as { table?: string }).table === 'activities'
   ) {

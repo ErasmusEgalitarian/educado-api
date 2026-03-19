@@ -63,10 +63,7 @@ export const validateInstitutionPayload = (
   }
 
   if (!partial || secondaryDomainRaw !== undefined) {
-    if (
-      hasSecondaryDomainInput &&
-      !secondaryDomain
-    ) {
+    if (hasSecondaryDomainInput && !secondaryDomain) {
       fieldErrors.secondaryDomain = 'INVALID_FORMAT'
     } else if (secondaryDomain && !DOMAIN_REGEX.test(secondaryDomain)) {
       fieldErrors.secondaryDomain = 'INVALID_FORMAT'

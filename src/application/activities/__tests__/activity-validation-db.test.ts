@@ -47,7 +47,10 @@ describe('validateDbActivityPayload', () => {
     })
 
     it('should return REQUIRED when sectionId is missing', () => {
-      const result = validateDbActivityPayload({ ...validPayload, sectionId: '' })
+      const result = validateDbActivityPayload({
+        ...validPayload,
+        sectionId: '',
+      })
       expect(result.fieldErrors.sectionId).toBe('REQUIRED')
     })
 
@@ -71,7 +74,10 @@ describe('validateDbActivityPayload', () => {
     )
 
     it('should return INVALID for unknown type', () => {
-      const result = validateDbActivityPayload({ ...validPayload, type: 'quiz' })
+      const result = validateDbActivityPayload({
+        ...validPayload,
+        type: 'quiz',
+      })
       expect(result.fieldErrors.type).toBe('INVALID')
     })
 
@@ -103,7 +109,10 @@ describe('validateDbActivityPayload', () => {
     })
 
     it('should return INVALID for non-number order', () => {
-      const result = validateDbActivityPayload({ ...validPayload, order: 'first' })
+      const result = validateDbActivityPayload({
+        ...validPayload,
+        order: 'first',
+      })
       expect(result.fieldErrors.order).toBe('INVALID')
     })
   })

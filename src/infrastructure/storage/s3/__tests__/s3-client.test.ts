@@ -5,14 +5,24 @@ jest.mock('@aws-sdk/client-s3', () => {
     S3Client: jest.fn().mockImplementation(() => ({
       send: mockSend,
     })),
-    PutObjectCommand: jest.fn().mockImplementation((input) => ({ _type: 'PutObject', ...input })),
-    GetObjectCommand: jest.fn().mockImplementation((input) => ({ _type: 'GetObject', ...input })),
-    DeleteObjectCommand: jest.fn().mockImplementation((input) => ({ _type: 'DeleteObject', ...input })),
+    PutObjectCommand: jest
+      .fn()
+      .mockImplementation((input) => ({ _type: 'PutObject', ...input })),
+    GetObjectCommand: jest
+      .fn()
+      .mockImplementation((input) => ({ _type: 'GetObject', ...input })),
+    DeleteObjectCommand: jest
+      .fn()
+      .mockImplementation((input) => ({ _type: 'DeleteObject', ...input })),
   }
 })
 
 import { uploadToS3, getFromS3, deleteFromS3 } from '../s3-client'
-import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import {
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3'
 
 describe('uploadToS3', () => {
   beforeEach(() => {

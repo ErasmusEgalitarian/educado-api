@@ -24,7 +24,10 @@ describe('validateCoursePayload', () => {
     })
 
     it('should accept UUID as imageMediaId', () => {
-      const result = validateCoursePayload({ ...validPayload, imageMediaId: VALID_UUID })
+      const result = validateCoursePayload({
+        ...validPayload,
+        imageMediaId: VALID_UUID,
+      })
       expect(result.data).not.toBeNull()
       expect(result.fieldErrors.imageMediaId).toBeUndefined()
     })
@@ -64,7 +67,10 @@ describe('validateCoursePayload', () => {
 
   describe('description validation', () => {
     it('should return LENGTH_INVALID when description is less than 20 characters', () => {
-      const result = validateCoursePayload({ ...validPayload, description: 'Too short' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        description: 'Too short',
+      })
       expect(result.fieldErrors.description).toBe('LENGTH_INVALID')
     })
 
@@ -79,7 +85,10 @@ describe('validateCoursePayload', () => {
 
   describe('shortDescription validation', () => {
     it('should return LENGTH_INVALID when shortDescription is less than 10 characters', () => {
-      const result = validateCoursePayload({ ...validPayload, shortDescription: 'Short' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        shortDescription: 'Short',
+      })
       expect(result.fieldErrors.shortDescription).toBe('LENGTH_INVALID')
     })
 
@@ -94,12 +103,18 @@ describe('validateCoursePayload', () => {
 
   describe('imageMediaId validation', () => {
     it('should return REQUIRED when imageMediaId is empty', () => {
-      const result = validateCoursePayload({ ...validPayload, imageMediaId: '' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        imageMediaId: '',
+      })
       expect(result.fieldErrors.imageMediaId).toBe('REQUIRED')
     })
 
     it('should return INVALID for invalid format', () => {
-      const result = validateCoursePayload({ ...validPayload, imageMediaId: 'not-valid' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        imageMediaId: 'not-valid',
+      })
       expect(result.fieldErrors.imageMediaId).toBe('INVALID')
     })
 
@@ -122,7 +137,10 @@ describe('validateCoursePayload', () => {
 
   describe('difficulty validation', () => {
     it('should return INVALID for unknown difficulty', () => {
-      const result = validateCoursePayload({ ...validPayload, difficulty: 'expert' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        difficulty: 'expert',
+      })
       expect(result.fieldErrors.difficulty).toBe('INVALID')
     })
 
@@ -137,39 +155,60 @@ describe('validateCoursePayload', () => {
 
   describe('estimatedTime validation', () => {
     it('should return REQUIRED when estimatedTime is empty', () => {
-      const result = validateCoursePayload({ ...validPayload, estimatedTime: '' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        estimatedTime: '',
+      })
       expect(result.fieldErrors.estimatedTime).toBe('REQUIRED')
     })
   })
 
   describe('passingThreshold validation', () => {
     it('should return RANGE_INVALID when passingThreshold is negative', () => {
-      const result = validateCoursePayload({ ...validPayload, passingThreshold: -1 })
+      const result = validateCoursePayload({
+        ...validPayload,
+        passingThreshold: -1,
+      })
       expect(result.fieldErrors.passingThreshold).toBe('RANGE_INVALID')
     })
 
     it('should return RANGE_INVALID when passingThreshold is over 100', () => {
-      const result = validateCoursePayload({ ...validPayload, passingThreshold: 101 })
+      const result = validateCoursePayload({
+        ...validPayload,
+        passingThreshold: 101,
+      })
       expect(result.fieldErrors.passingThreshold).toBe('RANGE_INVALID')
     })
 
     it('should return RANGE_INVALID when passingThreshold is not an integer', () => {
-      const result = validateCoursePayload({ ...validPayload, passingThreshold: 75.5 })
+      const result = validateCoursePayload({
+        ...validPayload,
+        passingThreshold: 75.5,
+      })
       expect(result.fieldErrors.passingThreshold).toBe('RANGE_INVALID')
     })
 
     it('should return RANGE_INVALID when passingThreshold is NaN', () => {
-      const result = validateCoursePayload({ ...validPayload, passingThreshold: 'abc' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        passingThreshold: 'abc',
+      })
       expect(result.fieldErrors.passingThreshold).toBe('RANGE_INVALID')
     })
 
     it('should accept passingThreshold of 0', () => {
-      const result = validateCoursePayload({ ...validPayload, passingThreshold: 0 })
+      const result = validateCoursePayload({
+        ...validPayload,
+        passingThreshold: 0,
+      })
       expect(result.fieldErrors.passingThreshold).toBeUndefined()
     })
 
     it('should accept passingThreshold of 100', () => {
-      const result = validateCoursePayload({ ...validPayload, passingThreshold: 100 })
+      const result = validateCoursePayload({
+        ...validPayload,
+        passingThreshold: 100,
+      })
       expect(result.fieldErrors.passingThreshold).toBeUndefined()
     })
   })
@@ -183,7 +222,10 @@ describe('validateCoursePayload', () => {
 
   describe('tags validation', () => {
     it('should return INVALID when tags is not an array', () => {
-      const result = validateCoursePayload({ ...validPayload, tags: 'not-array' })
+      const result = validateCoursePayload({
+        ...validPayload,
+        tags: 'not-array',
+      })
       expect(result.fieldErrors.tags).toBe('INVALID')
     })
 

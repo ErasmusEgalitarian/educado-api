@@ -46,7 +46,11 @@ describe('requireAuth', () => {
     const req = createMockReq()
     const res = createMockRes()
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(res.status).toHaveBeenCalledWith(401)
     expect(res.json).toHaveBeenCalledWith({ code: 'UNAUTHORIZED' })
@@ -57,7 +61,11 @@ describe('requireAuth', () => {
     const req = createMockReq('Basic some-token')
     const res = createMockRes()
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(res.status).toHaveBeenCalledWith(401)
     expect(next).not.toHaveBeenCalled()
@@ -68,7 +76,11 @@ describe('requireAuth', () => {
     const res = createMockRes()
 
     // Empty string token - jwt.verify won't be called since token is falsy
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     // The middleware slices "Bearer " to get "", which is falsy
     // so it returns 401 before calling jwt.verify
@@ -82,7 +94,11 @@ describe('requireAuth', () => {
 
     mockVerify.mockReturnValue({ sub: 'user-123', role: 'USER' })
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(next).toHaveBeenCalled()
     expect(res.locals.auth).toEqual({
@@ -97,7 +113,11 @@ describe('requireAuth', () => {
 
     mockVerify.mockReturnValue({ sub: 'admin-1', role: 'ADMIN' })
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(next).toHaveBeenCalled()
     expect(res.locals.auth).toEqual({
@@ -112,7 +132,11 @@ describe('requireAuth', () => {
 
     mockVerify.mockReturnValue({ sub: 'user-1', role: 'MODERATOR' })
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(next).toHaveBeenCalled()
     expect(res.locals.auth).toEqual({
@@ -129,7 +153,11 @@ describe('requireAuth', () => {
       throw new Error('jwt expired')
     })
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(res.status).toHaveBeenCalledWith(401)
     expect(res.json).toHaveBeenCalledWith({ code: 'UNAUTHORIZED' })
@@ -142,7 +170,11 @@ describe('requireAuth', () => {
 
     mockVerify.mockReturnValue({ role: 'USER' })
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(res.status).toHaveBeenCalledWith(401)
     expect(next).not.toHaveBeenCalled()
@@ -154,7 +186,11 @@ describe('requireAuth', () => {
 
     mockVerify.mockReturnValue({ sub: 123, role: 'USER' })
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(res.status).toHaveBeenCalledWith(401)
     expect(next).not.toHaveBeenCalled()
@@ -170,10 +206,16 @@ describe('requireAuth', () => {
       throw new Error('no secret')
     })
 
-    requireAuth(req as Request, res as unknown as Response, next as NextFunction)
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
 
     expect(res.status).toHaveBeenCalledWith(500)
-    expect(res.json).toHaveBeenCalledWith({ code: 'MISSING_ACCESS_TOKEN_SECRET' })
+    expect(res.json).toHaveBeenCalledWith({
+      code: 'MISSING_ACCESS_TOKEN_SECRET',
+    })
     expect(next).not.toHaveBeenCalled()
   })
 })

@@ -1077,7 +1077,9 @@ export const swaggerDocument = {
             description: 'Detalhes do usuário',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/AdminUserDetailResponse' },
+                schema: {
+                  $ref: '#/components/schemas/AdminUserDetailResponse',
+                },
               },
             },
           },
@@ -1127,7 +1129,9 @@ export const swaggerDocument = {
             description: 'Usuário removido com sucesso',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/AdminUserDeleteResponse' },
+                schema: {
+                  $ref: '#/components/schemas/AdminUserDeleteResponse',
+                },
               },
             },
           },

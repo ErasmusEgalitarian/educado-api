@@ -22,7 +22,10 @@ describe('emailVerificationCodeTemplate', () => {
   })
 
   it('should include firstName in greeting when provided', () => {
-    const result = emailVerificationCodeTemplate({ firstName: 'Maria', code: '1234' })
+    const result = emailVerificationCodeTemplate({
+      firstName: 'Maria',
+      code: '1234',
+    })
     expect(result.html).toContain('Maria')
   })
 
@@ -33,12 +36,18 @@ describe('emailVerificationCodeTemplate', () => {
   })
 
   it('should use generic greeting when firstName is empty string', () => {
-    const result = emailVerificationCodeTemplate({ firstName: '', code: '1234' })
+    const result = emailVerificationCodeTemplate({
+      firstName: '',
+      code: '1234',
+    })
     expect(result.html).toContain('Olá!')
   })
 
   it('should use generic greeting when firstName is whitespace only', () => {
-    const result = emailVerificationCodeTemplate({ firstName: '   ', code: '1234' })
+    const result = emailVerificationCodeTemplate({
+      firstName: '   ',
+      code: '1234',
+    })
     expect(result.html).toContain('Olá!')
   })
 })
@@ -61,7 +70,10 @@ describe('passwordResetCodeTemplate', () => {
   })
 
   it('should include firstName in greeting when provided', () => {
-    const result = passwordResetCodeTemplate({ firstName: 'João', code: '5678' })
+    const result = passwordResetCodeTemplate({
+      firstName: 'João',
+      code: '5678',
+    })
     expect(result.html).toContain('João')
   })
 

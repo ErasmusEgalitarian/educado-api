@@ -12,12 +12,16 @@ describe('validateImageType', () => {
     }
   )
 
-  it.each(['image/gif', 'image/svg+xml', 'image/bmp', 'application/pdf', 'video/mp4', ''])(
-    'should reject %s',
-    (mime) => {
-      expect(validateImageType(mime)).toBe(false)
-    }
-  )
+  it.each([
+    'image/gif',
+    'image/svg+xml',
+    'image/bmp',
+    'application/pdf',
+    'video/mp4',
+    '',
+  ])('should reject %s', (mime) => {
+    expect(validateImageType(mime)).toBe(false)
+  })
 })
 
 describe('validateVideoType', () => {
@@ -28,12 +32,15 @@ describe('validateVideoType', () => {
     }
   )
 
-  it.each(['video/avi', 'video/mkv', 'image/jpeg', 'application/octet-stream', ''])(
-    'should reject %s',
-    (mime) => {
-      expect(validateVideoType(mime)).toBe(false)
-    }
-  )
+  it.each([
+    'video/avi',
+    'video/mkv',
+    'image/jpeg',
+    'application/octet-stream',
+    '',
+  ])('should reject %s', (mime) => {
+    expect(validateVideoType(mime)).toBe(false)
+  })
 })
 
 describe('validateMediaMetadata', () => {

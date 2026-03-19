@@ -8,7 +8,9 @@ describe('requireHttpsInProduction', () => {
     process.env.NODE_ENV = originalEnv
   })
 
-  const createMocks = (opts: { secure?: boolean; forwardedProto?: string } = {}) => {
+  const createMocks = (
+    opts: { secure?: boolean; forwardedProto?: string } = {}
+  ) => {
     const req = {
       secure: opts.secure ?? false,
       header: jest.fn((name: string) => {

@@ -105,10 +105,7 @@ describe('validateInstitutionPayload', () => {
   })
 
   it('should validate name in partial mode when provided', () => {
-    const { data, fieldErrors } = validateInstitutionPayload(
-      { name: '' },
-      true
-    )
+    const { data, fieldErrors } = validateInstitutionPayload({ name: '' }, true)
     expect(data).toBeNull()
     expect(fieldErrors.name).toBe('REQUIRED')
   })
@@ -146,8 +143,8 @@ describe('validateInstitutionPayload', () => {
     )
     expect(Object.keys(fieldErrors)).toHaveLength(0)
     expect(data).not.toBeNull()
-    expect((data as any).name).toBe('Updated Uni')
-    expect((data as any).domain).toBeUndefined()
+    expect((data as Record<string, unknown>).name).toBe('Updated Uni')
+    expect((data as Record<string, unknown>).domain).toBeUndefined()
   })
 
   it('should return partial data with domain only in partial mode', () => {
@@ -157,8 +154,8 @@ describe('validateInstitutionPayload', () => {
     )
     expect(Object.keys(fieldErrors)).toHaveLength(0)
     expect(data).not.toBeNull()
-    expect((data as any).domain).toBe('new.edu')
-    expect((data as any).name).toBeUndefined()
+    expect((data as Record<string, unknown>).domain).toBe('new.edu')
+    expect((data as Record<string, unknown>).name).toBeUndefined()
   })
 
   it('should clear secondaryDomain in partial mode when provided as empty string', () => {
@@ -168,7 +165,7 @@ describe('validateInstitutionPayload', () => {
     )
     expect(Object.keys(fieldErrors)).toHaveLength(0)
     expect(data).not.toBeNull()
-    expect((data as any).secondaryDomain).toBeUndefined()
+    expect((data as Record<string, unknown>).secondaryDomain).toBeUndefined()
   })
 
   it('should set secondaryDomain in partial mode when provided as valid domain', () => {
@@ -178,7 +175,7 @@ describe('validateInstitutionPayload', () => {
     )
     expect(Object.keys(fieldErrors)).toHaveLength(0)
     expect(data).not.toBeNull()
-    expect((data as any).secondaryDomain).toBe('alt.edu')
+    expect((data as Record<string, unknown>).secondaryDomain).toBe('alt.edu')
   })
 
   it('should set isActive in partial mode when provided', () => {
@@ -188,6 +185,6 @@ describe('validateInstitutionPayload', () => {
     )
     expect(Object.keys(fieldErrors)).toHaveLength(0)
     expect(data).not.toBeNull()
-    expect((data as any).isActive).toBe(true)
+    expect((data as Record<string, unknown>).isActive).toBe(true)
   })
 })

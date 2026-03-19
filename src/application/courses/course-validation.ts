@@ -2,8 +2,10 @@ type FieldErrors = Record<string, string>
 
 type Difficulty = 'beginner' | 'intermediate' | 'advanced'
 const MEDIA_ID_REGEX = /^[a-f\d]{24}$/i
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const isValidMediaId = (id: string) => MEDIA_ID_REGEX.test(id) || UUID_REGEX.test(id)
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const isValidMediaId = (id: string) =>
+  MEDIA_ID_REGEX.test(id) || UUID_REGEX.test(id)
 
 export type CoursePayload = {
   title: string

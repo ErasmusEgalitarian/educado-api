@@ -8,8 +8,7 @@ export const PASSWORD_RESET_STATUSES = [
   'LOCKED',
 ] as const
 
-export type PasswordResetStatus =
-  (typeof PASSWORD_RESET_STATUSES)[number]
+export type PasswordResetStatus = (typeof PASSWORD_RESET_STATUSES)[number]
 
 export class PasswordReset extends Model {
   declare id: string

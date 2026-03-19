@@ -9,12 +9,17 @@ describe('requireHttpsInProduction', () => {
   })
 
   const createMocks = (
-    opts: { secure?: boolean; forwardedProto?: string } = {}
+    opts: {
+      secure?: boolean
+      forwardedProto?: string
+      cfVisitor?: string
+    } = {}
   ) => {
     const req = {
       secure: opts.secure ?? false,
       header: jest.fn((name: string) => {
         if (name === 'x-forwarded-proto') return opts.forwardedProto
+        if (name === 'cf-visitor') return opts.cfVisitor
         return undefined
       }),
     } as unknown as Request
@@ -55,6 +60,38 @@ describe('requireHttpsInProduction', () => {
     const { req, res, next } = createMocks({ forwardedProto: 'https' })
     requireHttpsInProduction(req, res, next)
     expect(next).toHaveBeenCalled()
+  })
+
+  it('should call next() when cf-visitor scheme is https in production', () => {
+    process.env.NODE_ENV = 'production'
+    const { req, res, next } = createMocks({
+      forwardedProto: 'http',
+      cfVisitor: '{"scheme":"https"}',
+    })
+    requireHttpsInProduction(req, res, next)
+    expect(next).toHaveBeenCalled()
+  })
+
+  it('should return 403 when cf-visitor scheme is http in production', () => {
+    process.env.NODE_ENV = 'production'
+    const { req, res, next, jsonFn } = createMocks({
+      cfVisitor: '{"scheme":"http"}',
+    })
+    requireHttpsInProduction(req, res, next)
+    expect(next).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(jsonFn).toHaveBeenCalledWith({ code: 'HTTPS_REQUIRED' })
+  })
+
+  it('should return 403 when cf-visitor is malformed in production', () => {
+    process.env.NODE_ENV = 'production'
+    const { req, res, next, jsonFn } = createMocks({
+      cfVisitor: 'not-json',
+    })
+    requireHttpsInProduction(req, res, next)
+    expect(next).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(jsonFn).toHaveBeenCalledWith({ code: 'HTTPS_REQUIRED' })
   })
 
   it('should return 403 when not https in production', () => {

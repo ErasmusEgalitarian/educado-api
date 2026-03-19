@@ -192,9 +192,7 @@ export const institutionsUpdate = async (req: Request, res: Response) => {
     const nextName =
       payload.name !== undefined ? payload.name : institution.name
     const nextDomain =
-      payload.domain !== undefined
-        ? payload.domain
-        : institution.domain
+      payload.domain !== undefined ? payload.domain : institution.domain
     const nextSecondaryDomain =
       payload.secondaryDomain !== undefined
         ? payload.secondaryDomain

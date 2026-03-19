@@ -11,7 +11,11 @@ jest.mock('../../../infrastructure/storage/s3/s3-client', () => ({
 
 import { MediaAsset } from '../../../models'
 import { uploadToS3 } from '../../../infrastructure/storage/s3/s3-client'
-import { uploadMedia, listMediaByOwner, listMediaForAdmin } from '../media-service'
+import {
+  uploadMedia,
+  listMediaByOwner,
+  listMediaForAdmin,
+} from '../media-service'
 
 const mockMediaAsset = (overrides: Record<string, unknown> = {}) => ({
   id: 'media-1',
@@ -42,7 +46,11 @@ describe('uploadMedia', () => {
       size: 1024,
     } as Express.Multer.File
 
-    const result = await uploadMedia({ ownerId: 'owner-1', kind: 'image', file })
+    const result = await uploadMedia({
+      ownerId: 'owner-1',
+      kind: 'image',
+      file,
+    })
 
     expect(uploadToS3).toHaveBeenCalledWith(file, 'owner-1', 'image')
     expect(MediaAsset.create).toHaveBeenCalledWith(
@@ -73,7 +81,11 @@ describe('uploadMedia', () => {
       size: 2048,
     } as Express.Multer.File
 
-    const result = await uploadMedia({ ownerId: 'owner-1', kind: 'video', file })
+    const result = await uploadMedia({
+      ownerId: 'owner-1',
+      kind: 'video',
+      file,
+    })
     expect(result._id).toBe('media-2')
     expect(result.id).toBe('media-2')
     expect(result.gridFsId).toBe('media-2')
@@ -124,11 +136,18 @@ describe('listMediaByOwner', () => {
       count: 0,
     })
 
-    await listMediaByOwner('owner-1', { page: 1, limit: 10, status: 'INACTIVE' })
+    await listMediaByOwner('owner-1', {
+      page: 1,
+      limit: 10,
+      status: 'INACTIVE',
+    })
 
     expect(MediaAsset.findAndCountAll).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ ownerId: 'owner-1', status: 'INACTIVE' }),
+        where: expect.objectContaining({
+          ownerId: 'owner-1',
+          status: 'INACTIVE',
+        }),
       })
     )
   })
@@ -183,7 +202,12 @@ describe('listMediaForAdmin', () => {
       count: 0,
     })
 
-    await listMediaForAdmin({ page: 1, limit: 10, kind: 'image', status: 'ACTIVE' })
+    await listMediaForAdmin({
+      page: 1,
+      limit: 10,
+      kind: 'image',
+      status: 'ACTIVE',
+    })
 
     expect(MediaAsset.findAndCountAll).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -1,45 +1,8 @@
+# Infraestrutura local para desenvolvimento
+# A API roda diretamente via `npm run dev` (sem container)
+# O worker roda via `npm run worker:email` (sem container)
+
 services:
-  api:
-    build: .
-    container_name: educado-api
-    ports:
-      - "5001:5001"
-    env_file:
-      - .env
-    environment:
-      NODE_ENV: development
-      POSTGRES_URI_DEV: postgresql://educado:educado@postgres:5432/educado_dev
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: minioadmin
-      S3_SECRET_KEY: minioadmin
-      S3_BUCKET: educado-media
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      minio:
-        condition: service_healthy
-
-  worker-email:
-    build: .
-    container_name: educado-worker-email
-    command: node build/workers/email-worker.js
-    env_file:
-      - .env
-    environment:
-      NODE_ENV: development
-      POSTGRES_URI_DEV: postgresql://educado:educado@postgres:5432/educado_dev
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-
   postgres:
     image: postgres:16-alpine
     container_name: educado-postgres

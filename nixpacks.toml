@@ -1,0 +1,18 @@
+# Nixpacks build configuration for educado-api
+# Substitui o Dockerfile — Coolify detecta automaticamente
+
+[variables]
+NIXPACKS_NODE_VERSION = "20"
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+aptPkgs = ["curl", "wget"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node build/index.js"

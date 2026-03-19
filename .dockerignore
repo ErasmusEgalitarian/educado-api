@@ -7,4 +7,17 @@ build
 coverage
 *.md
 docker-compose.yml
+docker-compose.yaml
 .vscode
+
+# Test files
+**/__tests__
+**/*.test.ts
+jest.config.ts
+tsconfig.test.json
+
+# Dev config
+.eslintrc*
+.prettierrc*
+.node-version
+.editorconfig

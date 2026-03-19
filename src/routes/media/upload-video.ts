@@ -10,33 +10,37 @@ const upload = multer({
   limits: { fileSize: 500 * 1024 * 1024 },
 })
 
-router.post('/videos', upload.single('file'), async (req: Request, res: Response) => {
-  try {
-    const file = req.file
+router.post(
+  '/videos',
+  upload.single('file'),
+  async (req: Request, res: Response) => {
+    try {
+      const file = req.file
 
-    if (!file) {
-      return res.status(422).json({
-        code: 'VALIDATION_ERROR',
-        fieldErrors: { file: 'REQUIRED' },
+      if (!file) {
+        return res.status(422).json({
+          code: 'VALIDATION_ERROR',
+          fieldErrors: { file: 'REQUIRED' },
+        })
+      }
+
+      if (!validateVideoType(file.mimetype)) {
+        return res.status(422).json({ code: 'INVALID_VIDEO_TYPE' })
+      }
+
+      const { userId } = getAuthContext(res)
+      const media = await uploadMedia({
+        ownerId: userId,
+        kind: 'video',
+        file,
       })
+
+      return res.status(201).json(media)
+    } catch (error) {
+      console.error('Upload video route error', error)
+      return res.status(500).json({ code: 'INTERNAL_SERVER_ERROR' })
     }
-
-    if (!validateVideoType(file.mimetype)) {
-      return res.status(422).json({ code: 'INVALID_VIDEO_TYPE' })
-    }
-
-    const { userId } = getAuthContext(res)
-    const media = await uploadMedia({
-      ownerId: userId,
-      kind: 'video',
-      file,
-    })
-
-    return res.status(201).json(media)
-  } catch (error) {
-    console.error('Upload video route error', error)
-    return res.status(500).json({ code: 'INTERNAL_SERVER_ERROR' })
   }
-})
+)
 
 export default router

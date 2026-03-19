@@ -28,7 +28,10 @@ describe('AppError', () => {
   })
 
   it('should allow accessing code from payload', () => {
-    const error = new AppError(422, { code: 'VALIDATION_ERROR', fieldErrors: {} })
+    const error = new AppError(422, {
+      code: 'VALIDATION_ERROR',
+      fieldErrors: {},
+    })
     expect(error.payload.code).toBe('VALIDATION_ERROR')
   })
 

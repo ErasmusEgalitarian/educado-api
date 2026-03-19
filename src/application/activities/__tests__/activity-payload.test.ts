@@ -9,13 +9,16 @@ describe('validateAndMapActivityPayload', () => {
     })
 
     it('should return INVALID type error for unknown type', () => {
-      const { data, fieldErrors } = validateAndMapActivityPayload({ type: 'unknown' })
+      const { data, fieldErrors } = validateAndMapActivityPayload({
+        type: 'unknown',
+      })
       expect(data).toBeNull()
       expect(fieldErrors.type).toBe('INVALID')
     })
 
     it('should handle non-object payload', () => {
-      const { data, fieldErrors } = validateAndMapActivityPayload('not-an-object')
+      const { data, fieldErrors } =
+        validateAndMapActivityPayload('not-an-object')
       expect(data).toBeNull()
       expect(fieldErrors.type).toBe('INVALID')
     })

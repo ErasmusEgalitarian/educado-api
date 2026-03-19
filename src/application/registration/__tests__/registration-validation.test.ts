@@ -56,13 +56,19 @@ describe('validateCreateRegistrationInput', () => {
 
   describe('required fields', () => {
     it('should return REQUIRED error when firstName is empty', () => {
-      const result = validateCreateRegistrationInput({ ...validInput, firstName: '' })
+      const result = validateCreateRegistrationInput({
+        ...validInput,
+        firstName: '',
+      })
       expect(result.data).toBeNull()
       expect(result.fieldErrors.firstName).toBe('REQUIRED')
     })
 
     it('should return REQUIRED error when lastName is empty', () => {
-      const result = validateCreateRegistrationInput({ ...validInput, lastName: '' })
+      const result = validateCreateRegistrationInput({
+        ...validInput,
+        lastName: '',
+      })
       expect(result.data).toBeNull()
       expect(result.fieldErrors.lastName).toBe('REQUIRED')
     })
@@ -92,17 +98,26 @@ describe('validateCreateRegistrationInput', () => {
 
   describe('email validation', () => {
     it('should return EMAIL_INVALID for email without @', () => {
-      const result = validateCreateRegistrationInput({ ...validInput, email: 'invalid' })
+      const result = validateCreateRegistrationInput({
+        ...validInput,
+        email: 'invalid',
+      })
       expect(result.fieldErrors.email).toBe('EMAIL_INVALID')
     })
 
     it('should return EMAIL_INVALID for email without domain', () => {
-      const result = validateCreateRegistrationInput({ ...validInput, email: 'user@' })
+      const result = validateCreateRegistrationInput({
+        ...validInput,
+        email: 'user@',
+      })
       expect(result.fieldErrors.email).toBe('EMAIL_INVALID')
     })
 
     it('should return EMAIL_INVALID for email without TLD', () => {
-      const result = validateCreateRegistrationInput({ ...validInput, email: 'user@domain' })
+      const result = validateCreateRegistrationInput({
+        ...validInput,
+        email: 'user@domain',
+      })
       expect(result.fieldErrors.email).toBe('EMAIL_INVALID')
     })
 
@@ -312,7 +327,10 @@ describe('validateLoginInput', () => {
   })
 
   it('should return EMAIL_INVALID for invalid email format', () => {
-    const result = validateLoginInput({ email: 'invalid', password: 'mypassword' })
+    const result = validateLoginInput({
+      email: 'invalid',
+      password: 'mypassword',
+    })
     expect(result.fieldErrors.email).toBe('EMAIL_INVALID')
   })
 
@@ -346,8 +364,14 @@ describe('validateRejectInput', () => {
   })
 
   it('should include notes when provided', () => {
-    const result = validateRejectInput({ reason: 'Not qualified', notes: 'See details' })
-    expect(result.data).toEqual({ reason: 'Not qualified', notes: 'See details' })
+    const result = validateRejectInput({
+      reason: 'Not qualified',
+      notes: 'See details',
+    })
+    expect(result.data).toEqual({
+      reason: 'Not qualified',
+      notes: 'See details',
+    })
   })
 
   it('should omit notes when empty', () => {

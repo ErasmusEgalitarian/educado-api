@@ -33,7 +33,8 @@ const normalizeText = (value: unknown): string => {
   return value.trim()
 }
 
-export const normalizeEmail = (email: string): string => email.trim().toLowerCase()
+export const normalizeEmail = (email: string): string =>
+  email.trim().toLowerCase()
 
 export const validateCreateRegistrationInput = (
   payload: unknown
@@ -144,7 +145,10 @@ export const validateLoginInput = (
 
 export const validateRejectInput = (
   payload: unknown
-): { data: { reason: string; notes?: string } | null; fieldErrors: FieldErrors } => {
+): {
+  data: { reason: string; notes?: string } | null
+  fieldErrors: FieldErrors
+} => {
   const body = (payload ?? {}) as Record<string, unknown>
   const reason = normalizeText(body.reason)
   const notes = normalizeText(body.notes)

@@ -40,14 +40,20 @@ describe('requestIdMiddleware', () => {
   it('should set x-request-id header on response', () => {
     const { req, res, next } = createMocks()
     requestIdMiddleware(req, res, next)
-    expect(res.setHeader).toHaveBeenCalledWith('x-request-id', expect.any(String))
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'x-request-id',
+      expect.any(String)
+    )
   })
 
   it('should use incoming x-request-id if provided', () => {
     const { req, res, next } = createMocks('incoming-id-123')
     requestIdMiddleware(req, res, next)
     expect(res.locals.requestId).toBe('incoming-id-123')
-    expect(res.setHeader).toHaveBeenCalledWith('x-request-id', 'incoming-id-123')
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'x-request-id',
+      'incoming-id-123'
+    )
   })
 
   it('should generate a UUID when no x-request-id header is present', () => {

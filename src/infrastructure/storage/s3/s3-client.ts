@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3'
 import { randomUUID } from 'crypto'
 
 const getS3Client = () => {
@@ -15,27 +20,42 @@ const getS3Client = () => {
 
 const getBucket = () => process.env.S3_BUCKET || 'educado-media'
 
-export const uploadToS3 = async (file: { buffer: Buffer; originalname: string; mimetype: string; size: number }, ownerId: string, kind: string): Promise<string> => {
+export const uploadToS3 = async (
+  file: {
+    buffer: Buffer
+    originalname: string
+    mimetype: string
+    size: number
+  },
+  ownerId: string,
+  kind: string
+): Promise<string> => {
   const client = getS3Client()
   const key = `${kind}/${ownerId}/${randomUUID()}-${file.originalname}`
 
-  await client.send(new PutObjectCommand({
-    Bucket: getBucket(),
-    Key: key,
-    Body: file.buffer,
-    ContentType: file.mimetype,
-  }))
+  await client.send(
+    new PutObjectCommand({
+      Bucket: getBucket(),
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    })
+  )
 
   return key
 }
 
-export const getFromS3 = async (key: string): Promise<{ body: NodeJS.ReadableStream; contentType: string }> => {
+export const getFromS3 = async (
+  key: string
+): Promise<{ body: NodeJS.ReadableStream; contentType: string }> => {
   const client = getS3Client()
 
-  const response = await client.send(new GetObjectCommand({
-    Bucket: getBucket(),
-    Key: key,
-  }))
+  const response = await client.send(
+    new GetObjectCommand({
+      Bucket: getBucket(),
+      Key: key,
+    })
+  )
 
   return {
     body: response.Body as NodeJS.ReadableStream,
@@ -46,8 +66,10 @@ export const getFromS3 = async (key: string): Promise<{ body: NodeJS.ReadableStr
 export const deleteFromS3 = async (key: string): Promise<void> => {
   const client = getS3Client()
 
-  await client.send(new DeleteObjectCommand({
-    Bucket: getBucket(),
-    Key: key,
-  }))
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: getBucket(),
+      Key: key,
+    })
+  )
 }

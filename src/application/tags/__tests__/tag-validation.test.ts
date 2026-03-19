@@ -1,4 +1,8 @@
-import { validateTagPayload, validateTagIds, buildTagSlug } from '../tag-validation'
+import {
+  validateTagPayload,
+  validateTagIds,
+  buildTagSlug,
+} from '../tag-validation'
 
 describe('validateTagPayload', () => {
   it('should return valid data for a correct payload', () => {
@@ -32,7 +36,10 @@ describe('validateTagPayload', () => {
   })
 
   it('should accept optional description', () => {
-    const { data } = validateTagPayload({ name: 'Tag', description: 'A description' })
+    const { data } = validateTagPayload({
+      name: 'Tag',
+      description: 'A description',
+    })
     expect(data!.description).toBe('A description')
   })
 
@@ -51,13 +58,19 @@ describe('validateTagPayload', () => {
   })
 
   it('should reject non-boolean isActive', () => {
-    const { data, fieldErrors } = validateTagPayload({ name: 'Tag', isActive: 'yes' })
+    const { data, fieldErrors } = validateTagPayload({
+      name: 'Tag',
+      isActive: 'yes',
+    })
     expect(data).toBeNull()
     expect(fieldErrors.isActive).toBe('INVALID')
   })
 
   it('should skip name validation in partial mode when name not provided', () => {
-    const { data, fieldErrors } = validateTagPayload({ description: 'Updated' }, true)
+    const { data, fieldErrors } = validateTagPayload(
+      { description: 'Updated' },
+      true
+    )
     expect(data).not.toBeNull()
     expect(Object.keys(fieldErrors)).toHaveLength(0)
     expect(data!.description).toBe('Updated')

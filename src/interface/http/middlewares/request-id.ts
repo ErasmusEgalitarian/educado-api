@@ -7,9 +7,10 @@ export const requestIdMiddleware = (
   next: NextFunction
 ) => {
   const incomingRequestId = req.header('x-request-id')
-  const requestId = incomingRequestId && incomingRequestId.trim() !== ''
-    ? incomingRequestId
-    : randomUUID()
+  const requestId =
+    incomingRequestId && incomingRequestId.trim() !== ''
+      ? incomingRequestId
+      : randomUUID()
 
   res.setHeader('x-request-id', requestId)
   res.locals.requestId = requestId

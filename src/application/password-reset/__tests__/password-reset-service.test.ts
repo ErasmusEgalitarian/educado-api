@@ -233,7 +233,11 @@ describe('resetPassword', () => {
     ;(verifyPassword as jest.Mock).mockResolvedValue(true)
     ;(hashPassword as jest.Mock).mockResolvedValue('new-hashed-pw')
 
-    const result = await resetPassword('test@example.com', '1234', 'NewPassword1')
+    const result = await resetPassword(
+      'test@example.com',
+      '1234',
+      'NewPassword1'
+    )
     expect(result.reset).toBe(true)
     expect(user.update).toHaveBeenCalledWith({ passwordHash: 'new-hashed-pw' })
     expect(resetRecord.update).toHaveBeenCalledWith({ status: 'EXPIRED' })

@@ -96,10 +96,7 @@ export const requestPasswordReset = async (email: string) => {
   }
 }
 
-export const verifyPasswordResetCode = async (
-  email: string,
-  code: string
-) => {
+export const verifyPasswordResetCode = async (email: string, code: string) => {
   const emailNormalized = normalizeEmail(email)
   const user = await User.findOne({ where: { emailNormalized } })
 

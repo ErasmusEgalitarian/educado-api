@@ -13,7 +13,9 @@ type StreamAuthContext = {
 function getStreamAuth(req: Request): StreamAuthContext | null {
   // Try Authorization header first
   const authorization = req.headers.authorization
-  let token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : null
+  let token = authorization?.startsWith('Bearer ')
+    ? authorization.slice(7)
+    : null
 
   // Fall back to query param
   if (!token) {
@@ -27,7 +29,8 @@ function getStreamAuth(req: Request): StreamAuthContext | null {
     const secret = getAccessTokenSecret()
     const decoded = jwt.verify(token, secret) as JwtPayload
     const userId = typeof decoded.sub === 'string' ? decoded.sub : ''
-    const role = decoded.role === 'ADMIN' ? 'ADMIN' as const : 'USER' as const
+    const role =
+      decoded.role === 'ADMIN' ? ('ADMIN' as const) : ('USER' as const)
     if (!userId) return null
     return { userId, role }
   } catch {

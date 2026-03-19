@@ -3,3 +3,8 @@ build
 .git
 .gitignore
 .env
+.env.*
+coverage
+*.md
+docker-compose.yml
+.vscode

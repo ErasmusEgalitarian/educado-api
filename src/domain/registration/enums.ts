@@ -8,7 +8,7 @@ export const REGISTRATION_STATUSES = [
 
 export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number]
 
-export const USER_ROLES = ['USER', 'ADMIN'] as const
+export const USER_ROLES = ['USER', 'ADMIN', 'STUDENT'] as const
 
 export type UserRole = (typeof USER_ROLES)[number]
 

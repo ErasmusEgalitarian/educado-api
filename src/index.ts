@@ -24,6 +24,10 @@ import { requestIdMiddleware } from './interface/http/middlewares/request-id'
 import { requireHttpsInProduction } from './interface/http/middlewares/require-https'
 import mediaRoutes from './routes/media'
 import { emailVerificationRouter } from './routes/verification/email-verification'
+import { studentRouter } from './routes/student/student'
+import { catalogRouter } from './routes/catalog/catalog'
+import { leaderboardRouter } from './routes/leaderboard/leaderboard'
+import { certificateVerificationRouter } from './routes/certificates/verify'
 
 export const isProd = () => process.env.NODE_ENV === 'production'
 
@@ -113,9 +117,10 @@ const startServer = async () => {
   app.use('/institutions', institutionsRouter)
   app.use('/account/email-verification', emailVerificationRouter)
   app.use('/media', mediaRoutes)
-  app.get('/docs', (_req, res) => {
-    res.redirect('/docs/')
-  })
+  app.use('/student', studentRouter)
+  app.use('/catalog', catalogRouter)
+  app.use('/leaderboard', leaderboardRouter)
+  app.use('/certificates', certificateVerificationRouter)
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
   // Start the server

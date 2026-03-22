@@ -22,6 +22,46 @@ export const swaggerDocument = {
     { name: 'Tags', description: 'Endpoints de tags' },
     { name: 'Institutions', description: 'Endpoints de instituições' },
     { name: 'Media', description: 'Upload e listagem de mídia' },
+    {
+      name: 'Student Auth',
+      description: 'Registro e autenticação de estudantes (mobile)',
+    },
+    {
+      name: 'Student Profile',
+      description: 'Perfil do estudante (mobile)',
+    },
+    {
+      name: 'Catalog',
+      description: 'Catálogo público de cursos',
+    },
+    {
+      name: 'Enrollments',
+      description: 'Inscrição de estudantes em cursos',
+    },
+    {
+      name: 'Student Progress',
+      description: 'Progresso do estudante (autenticado via JWT)',
+    },
+    {
+      name: 'Student Activities',
+      description: 'Submissão de respostas de atividades',
+    },
+    {
+      name: 'Gamification',
+      description: 'Pontos, XP, níveis e badges',
+    },
+    {
+      name: 'Leaderboard',
+      description: 'Ranking global e por curso',
+    },
+    {
+      name: 'Reviews',
+      description: 'Avaliações e feedback de cursos',
+    },
+    {
+      name: 'Student Certificates',
+      description: 'Certificados do estudante e verificação',
+    },
   ],
   components: {
     securitySchemes: {
@@ -650,6 +690,299 @@ export const swaggerDocument = {
           description: { type: 'string' },
         },
         required: ['title', 'altText', 'description'],
+      },
+      // ---- Student / Mobile Schemas ----
+      StudentRegistrationRequest: {
+        type: 'object',
+        properties: {
+          firstName: { type: 'string', example: 'João' },
+          lastName: { type: 'string', example: 'Silva' },
+          email: { type: 'string', format: 'email', nullable: true },
+          phone: { type: 'string', nullable: true },
+          dateOfBirth: { type: 'string', format: 'date', nullable: true },
+          deviceId: { type: 'string', nullable: true },
+        },
+        required: ['firstName', 'lastName'],
+      },
+      StudentAuthResponse: {
+        type: 'object',
+        properties: {
+          accessToken: { type: 'string' },
+          user: {
+            type: 'object',
+            properties: {
+              id: { type: 'string', format: 'uuid' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+            },
+          },
+        },
+      },
+      StudentProfile: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' },
+          email: { type: 'string', nullable: true },
+          phone: { type: 'string', nullable: true },
+          dateOfBirth: { type: 'string', nullable: true },
+          avatarMediaId: { type: 'string', nullable: true },
+          deviceId: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      CatalogCourse: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          title: { type: 'string' },
+          shortDescription: { type: 'string' },
+          imageMediaId: { type: 'string' },
+          difficulty: {
+            type: 'string',
+            enum: ['beginner', 'intermediate', 'advanced'],
+          },
+          estimatedTime: { type: 'string' },
+          category: { type: 'string' },
+          rating: { type: 'number', nullable: true },
+          tags: { type: 'array', items: { type: 'string' } },
+          enrollmentCount: { type: 'integer' },
+        },
+      },
+      CatalogCourseDetail: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          title: { type: 'string' },
+          description: { type: 'string' },
+          shortDescription: { type: 'string' },
+          imageMediaId: { type: 'string' },
+          difficulty: { type: 'string' },
+          estimatedTime: { type: 'string' },
+          passingThreshold: { type: 'number' },
+          category: { type: 'string' },
+          rating: { type: 'number', nullable: true },
+          enrollmentCount: { type: 'integer' },
+          sections: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                title: { type: 'string' },
+                order: { type: 'integer' },
+                duration: { type: 'integer', nullable: true },
+              },
+            },
+          },
+        },
+      },
+      Enrollment: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          courseId: { type: 'string' },
+          status: { type: 'string', enum: ['ACTIVE', 'COMPLETED', 'DROPPED'] },
+          enrolledAt: { type: 'string', format: 'date-time' },
+          completedAt: { type: 'string', format: 'date-time', nullable: true },
+          progressPercent: { type: 'integer' },
+          completedSections: { type: 'integer' },
+          totalSections: { type: 'integer' },
+          course: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+              shortDescription: { type: 'string' },
+              imageMediaId: { type: 'string' },
+              difficulty: { type: 'string' },
+              estimatedTime: { type: 'string' },
+              category: { type: 'string' },
+              rating: { type: 'number', nullable: true },
+            },
+          },
+        },
+      },
+      EnrollmentDetail: {
+        type: 'object',
+        properties: {
+          enrollment: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              status: { type: 'string' },
+              enrolledAt: { type: 'string', format: 'date-time' },
+              completedAt: { type: 'string', nullable: true },
+            },
+          },
+          course: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+              description: { type: 'string' },
+              imageMediaId: { type: 'string' },
+              difficulty: { type: 'string' },
+              estimatedTime: { type: 'string' },
+              passingThreshold: { type: 'number' },
+            },
+          },
+          progressPercent: { type: 'integer' },
+          completedSections: { type: 'integer' },
+          totalSections: { type: 'integer' },
+          sections: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                title: { type: 'string' },
+                order: { type: 'integer' },
+                status: {
+                  type: 'string',
+                  enum: ['completed', 'in_progress', 'locked'],
+                },
+                score: { type: 'integer', nullable: true },
+                totalQuestions: { type: 'integer', nullable: true },
+              },
+            },
+          },
+        },
+      },
+      GamificationSummary: {
+        type: 'object',
+        properties: {
+          totalPoints: { type: 'integer' },
+          currentLevel: { type: 'integer' },
+          levelName: { type: 'string' },
+          xpProgress: { type: 'integer' },
+          xpNeeded: { type: 'integer' },
+          currentStreak: { type: 'integer' },
+          longestStreak: { type: 'integer' },
+          coursesCompleted: { type: 'integer' },
+          sectionsCompleted: { type: 'integer' },
+          recentBadges: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                key: { type: 'string' },
+                name: { type: 'string' },
+                description: { type: 'string' },
+                iconUrl: { type: 'string', nullable: true },
+                earnedAt: { type: 'string', format: 'date-time' },
+              },
+            },
+          },
+        },
+      },
+      LeaderboardResult: {
+        type: 'object',
+        properties: {
+          month: { type: 'string', example: '2026-03' },
+          entries: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                rank: { type: 'integer' },
+                userId: { type: 'string' },
+                firstName: { type: 'string' },
+                lastName: { type: 'string' },
+                avatarMediaId: { type: 'string', nullable: true },
+                points: { type: 'integer' },
+              },
+            },
+          },
+          userRank: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              rank: { type: 'integer' },
+              userId: { type: 'string' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+              points: { type: 'integer' },
+            },
+          },
+          total: { type: 'integer' },
+        },
+      },
+      CourseReviewRequest: {
+        type: 'object',
+        properties: {
+          courseId: { type: 'string' },
+          rating: { type: 'integer', minimum: 1, maximum: 5 },
+          tags: { type: 'array', items: { type: 'string' }, maxItems: 5 },
+          comment: { type: 'string', nullable: true, maxLength: 1000 },
+        },
+        required: ['courseId', 'rating'],
+      },
+      CourseReviewItem: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          rating: { type: 'integer' },
+          tags: { type: 'array', items: { type: 'string' } },
+          comment: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          user: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: { type: 'string' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+              avatarMediaId: { type: 'string', nullable: true },
+            },
+          },
+        },
+      },
+      StudentCertificate: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          courseId: { type: 'string' },
+          courseName: { type: 'string' },
+          userName: { type: 'string' },
+          completedAt: { type: 'string', format: 'date-time' },
+          totalSections: { type: 'integer' },
+          hasPdf: { type: 'boolean' },
+          verificationCode: { type: 'string', nullable: true },
+          course: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+              imageMediaId: { type: 'string' },
+            },
+          },
+        },
+      },
+      AnswerSubmissionRequest: {
+        type: 'object',
+        properties: {
+          answer: {
+            description:
+              'Resposta (number para múltipla escolha, boolean para V/F)',
+          },
+        },
+        required: ['answer'],
+      },
+      AnswerSubmissionResponse: {
+        type: 'object',
+        properties: {
+          activityId: { type: 'string' },
+          correct: { type: 'boolean' },
+          correctAnswer: {
+            description: 'Resposta correta (tipo varia por atividade)',
+          },
+          attempts: { type: 'integer' },
+        },
       },
     },
   },
@@ -3715,6 +4048,1046 @@ export const swaggerDocument = {
               'application/json': {
                 schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
                 example: { code: 'MEDIA_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    // ========== Student Mobile Endpoints ==========
+    '/student/auth/register': {
+      post: {
+        tags: ['Student Auth'],
+        summary: 'Registrar estudante (sem senha)',
+        description:
+          'Cria uma conta de estudante com nome obrigatório. Email, celular, data de nascimento e deviceId são opcionais. Retorna JWT.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/StudentRegistrationRequest',
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Estudante registrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/StudentAuthResponse' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/auth/device-login': {
+      post: {
+        tags: ['Student Auth'],
+        summary: 'Login por device ID',
+        description:
+          'Autentica um estudante pelo deviceId armazenado no registro.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  deviceId: { type: 'string', example: 'device-abc-123' },
+                },
+                required: ['deviceId'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Login bem-sucedido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/StudentAuthResponse' },
+              },
+            },
+          },
+          '404': {
+            description: 'Device não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'DEVICE_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/profile': {
+      get: {
+        tags: ['Student Profile'],
+        summary: 'Obter perfil do estudante',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Perfil do estudante',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/StudentProfile' },
+              },
+            },
+          },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'UNAUTHORIZED' },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ['Student Profile'],
+        summary: 'Atualizar perfil do estudante',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  firstName: { type: 'string' },
+                  lastName: { type: 'string' },
+                  email: { type: 'string' },
+                  phone: { type: 'string' },
+                  dateOfBirth: { type: 'string', format: 'date' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Perfil atualizado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/StudentProfile' },
+              },
+            },
+          },
+          '422': {
+            description: 'Erro de validação',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ValidationErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/account': {
+      delete: {
+        tags: ['Student Profile'],
+        summary: 'Excluir conta do estudante',
+        description:
+          'Remove permanentemente a conta do estudante e todos os dados associados (progresso, inscrições, certificados).',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '204': { description: 'Conta excluída' },
+          '401': {
+            description: 'Não autenticado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/catalog/courses': {
+      get: {
+        tags: ['Catalog'],
+        summary: 'Listar cursos ativos (público)',
+        description:
+          'Retorna cursos ativos com paginação, busca textual e filtros por categoria e dificuldade.',
+        parameters: [
+          {
+            name: 'q',
+            in: 'query',
+            schema: { type: 'string' },
+            description: 'Busca textual',
+          },
+          {
+            name: 'category',
+            in: 'query',
+            schema: { type: 'string' },
+            description: 'Filtrar por categoria',
+          },
+          {
+            name: 'difficulty',
+            in: 'query',
+            schema: {
+              type: 'string',
+              enum: ['beginner', 'intermediate', 'advanced'],
+            },
+          },
+          {
+            name: 'page',
+            in: 'query',
+            schema: { type: 'integer', default: 1 },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', default: 20, maximum: 100 },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Lista paginada de cursos',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    items: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/CatalogCourse' },
+                    },
+                    page: { type: 'integer' },
+                    limit: { type: 'integer' },
+                    total: { type: 'integer' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/catalog/courses/{id}': {
+      get: {
+        tags: ['Catalog'],
+        summary: 'Detalhes de um curso (público)',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Detalhes do curso com seções',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CatalogCourseDetail' },
+              },
+            },
+          },
+          '404': {
+            description: 'Curso não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'COURSE_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/catalog/categories': {
+      get: {
+        tags: ['Catalog'],
+        summary: 'Listar categorias de cursos ativos',
+        responses: {
+          '200': {
+            description: 'Lista de categorias',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    categories: { type: 'array', items: { type: 'string' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/catalog/courses/{id}/reviews': {
+      get: {
+        tags: ['Reviews'],
+        summary: 'Listar avaliações de um curso (público)',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+          {
+            name: 'page',
+            in: 'query',
+            schema: { type: 'integer', default: 1 },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', default: 20 },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Avaliações paginadas com resumo',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    items: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/CourseReviewItem' },
+                    },
+                    total: { type: 'integer' },
+                    summary: {
+                      type: 'object',
+                      properties: {
+                        averageRating: { type: 'number' },
+                        totalReviews: { type: 'integer' },
+                        distribution: {
+                          type: 'object',
+                          properties: {
+                            '1': { type: 'integer' },
+                            '2': { type: 'integer' },
+                            '3': { type: 'integer' },
+                            '4': { type: 'integer' },
+                            '5': { type: 'integer' },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/enrollments': {
+      post: {
+        tags: ['Enrollments'],
+        summary: 'Inscrever-se em um curso',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { courseId: { type: 'string' } },
+                required: ['courseId'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Inscrição realizada',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    courseId: { type: 'string' },
+                    status: { type: 'string', example: 'ACTIVE' },
+                    enrolledAt: { type: 'string', format: 'date-time' },
+                  },
+                },
+              },
+            },
+          },
+          '404': {
+            description: 'Curso não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+              },
+            },
+          },
+          '409': {
+            description: 'Já inscrito',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'ALREADY_ENROLLED' },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Enrollments'],
+        summary: 'Listar cursos inscritos',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de inscrições com progresso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    enrollments: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Enrollment' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/enrollments/{courseId}': {
+      get: {
+        tags: ['Enrollments'],
+        summary: 'Detalhes da inscrição com progresso por seção',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'courseId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Detalhe da inscrição',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/EnrollmentDetail' },
+              },
+            },
+          },
+          '404': {
+            description: 'Inscrição não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'ENROLLMENT_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Enrollments'],
+        summary: 'Desinscrever-se de um curso',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'courseId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Desinscrição realizada',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'DROPPED' },
+                  },
+                },
+              },
+            },
+          },
+          '404': {
+            description: 'Inscrição não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/progress/courses': {
+      get: {
+        tags: ['Student Progress'],
+        summary: 'Listar progresso de todos os cursos',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de progresso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    progress: { type: 'array', items: { type: 'object' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/progress/courses/{courseId}': {
+      get: {
+        tags: ['Student Progress'],
+        summary: 'Progresso detalhado de um curso com seções (locked/unlocked)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'courseId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Progresso do curso com seções',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/EnrollmentDetail' },
+              },
+            },
+          },
+          '404': {
+            description: 'Inscrição não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/progress/courses/{courseId}/sections/{sectionId}': {
+      post: {
+        tags: ['Student Progress'],
+        summary: 'Salvar progresso de seção',
+        description:
+          'Registra a conclusão de uma seção com pontuação. Verifica desbloqueio sequencial e retém melhor pontuação.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'courseId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+          {
+            name: 'sectionId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  score: { type: 'integer', example: 80 },
+                  totalQuestions: { type: 'integer', example: 5 },
+                },
+                required: ['score', 'totalQuestions'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Progresso salvo',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    sectionId: { type: 'string' },
+                    completed: { type: 'boolean' },
+                    score: { type: 'integer' },
+                    totalQuestions: { type: 'integer' },
+                  },
+                },
+              },
+            },
+          },
+          '403': {
+            description: 'Seção bloqueada (acesso sequencial)',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'SECTION_LOCKED' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/progress/courses/{courseId}/complete': {
+      put: {
+        tags: ['Student Progress'],
+        summary: 'Marcar curso como concluído',
+        description:
+          'Valida que todas as seções foram concluídas, emite certificado e atualiza inscrição para COMPLETED.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'courseId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Curso concluído',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    courseId: { type: 'string' },
+                    completedAt: { type: 'string', format: 'date-time' },
+                    progressPercent: { type: 'integer', example: 100 },
+                  },
+                },
+              },
+            },
+          },
+          '400': {
+            description: 'Seções incompletas',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'SECTIONS_INCOMPLETE' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/activities/{activityId}/answer': {
+      post: {
+        tags: ['Student Activities'],
+        summary: 'Submeter resposta de atividade',
+        description:
+          'Verifica a resposta contra a atividade, registra tentativa e retorna se está correta. Permite retentativas ilimitadas.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'activityId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/AnswerSubmissionRequest' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Resultado da resposta',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/AnswerSubmissionResponse',
+                },
+              },
+            },
+          },
+          '403': {
+            description: 'Não inscrito no curso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'NOT_ENROLLED' },
+              },
+            },
+          },
+          '404': {
+            description: 'Atividade não encontrada',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'ACTIVITY_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/gamification/summary': {
+      get: {
+        tags: ['Gamification'],
+        summary: 'Resumo de gamificação do estudante',
+        description:
+          'Retorna pontos, nível, nome do nível, streak, badges recentes e barra de XP.',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Resumo de gamificação',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/GamificationSummary' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/gamification/badges': {
+      get: {
+        tags: ['Gamification'],
+        summary: 'Listar badges ganhos pelo estudante',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de badges',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    badges: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          key: { type: 'string' },
+                          name: { type: 'string' },
+                          description: { type: 'string' },
+                          iconUrl: { type: 'string', nullable: true },
+                          earnedAt: { type: 'string', format: 'date-time' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/gamification/points-history': {
+      get: {
+        tags: ['Gamification'],
+        summary: 'Histórico de pontos (paginado)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'page',
+            in: 'query',
+            schema: { type: 'integer', default: 1 },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', default: 20 },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Histórico paginado',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    items: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          action: {
+                            type: 'string',
+                            enum: [
+                              'SECTION_COMPLETE',
+                              'COURSE_COMPLETE',
+                              'PERFECT_SCORE',
+                              'DAILY_FIRST',
+                              'LOGIN_STREAK',
+                              'REVIEW_SUBMITTED',
+                            ],
+                          },
+                          points: { type: 'integer' },
+                          courseId: { type: 'string', nullable: true },
+                          earnedAt: { type: 'string', format: 'date-time' },
+                        },
+                      },
+                    },
+                    total: { type: 'integer' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/leaderboard/global': {
+      get: {
+        tags: ['Leaderboard'],
+        summary: 'Leaderboard global mensal',
+        description:
+          'Top 30 estudantes do mês por pontos. Se autenticado, inclui posição do usuário.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'month',
+            in: 'query',
+            schema: { type: 'string', example: '2026-03' },
+            description: 'Mês no formato YYYY-MM (padrão: mês atual)',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Leaderboard com top 30 + posição do usuário',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/LeaderboardResult' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/leaderboard/courses/{courseId}': {
+      get: {
+        tags: ['Leaderboard'],
+        summary: 'Leaderboard por curso',
+        description:
+          'Top 30 estudantes do mês por pontos em um curso específico.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'courseId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+          {
+            name: 'month',
+            in: 'query',
+            schema: { type: 'string', example: '2026-03' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Leaderboard do curso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/LeaderboardResult' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/reviews': {
+      post: {
+        tags: ['Reviews'],
+        summary: 'Submeter avaliação de curso',
+        description:
+          'Requer que o estudante tenha concluído o curso (enrollment COMPLETED). Avaliação 1-5 estrelas, tags selecionáveis e comentário opcional.',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/CourseReviewRequest' },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Avaliação submetida',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    rating: { type: 'integer' },
+                    tags: { type: 'array', items: { type: 'string' } },
+                    comment: { type: 'string', nullable: true },
+                  },
+                },
+              },
+            },
+          },
+          '403': {
+            description: 'Curso não concluído',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'COURSE_NOT_COMPLETED' },
+              },
+            },
+          },
+          '409': {
+            description: 'Já avaliou este curso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'ALREADY_REVIEWED' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/certificates': {
+      get: {
+        tags: ['Student Certificates'],
+        summary: 'Listar certificados do estudante',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Lista de certificados',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    certificates: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/StudentCertificate',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/student/certificates/{id}/pdf': {
+      get: {
+        tags: ['Student Certificates'],
+        summary: 'Baixar certificado em PDF',
+        description:
+          'Gera e retorna o PDF do certificado. Inclui dados do curso, nome do aluno, QR code de verificação.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'PDF do certificado',
+            content: {
+              'application/pdf': {
+                schema: { type: 'string', format: 'binary' },
+              },
+            },
+          },
+          '404': {
+            description: 'Certificado não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'CERTIFICATE_NOT_FOUND' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/certificates/verify/{code}': {
+      get: {
+        tags: ['Student Certificates'],
+        summary: 'Verificar certificado por código (público)',
+        description:
+          'Endpoint público para verificar a autenticidade de um certificado via QR code.',
+        parameters: [
+          {
+            name: 'code',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Código de verificação do certificado (12 caracteres)',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Certificado verificado',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    userName: { type: 'string' },
+                    courseName: { type: 'string' },
+                    completedAt: { type: 'string', format: 'date-time' },
+                    totalHours: { type: 'string', nullable: true },
+                    verified: { type: 'boolean', example: true },
+                  },
+                },
+              },
+            },
+          },
+          '404': {
+            description: 'Certificado não encontrado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CodeOnlyErrorResponse' },
+                example: { code: 'CERTIFICATE_NOT_FOUND' },
               },
             },
           },

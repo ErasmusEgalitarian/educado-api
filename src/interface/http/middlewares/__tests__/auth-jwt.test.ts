@@ -126,6 +126,25 @@ describe('requireAuth', () => {
     })
   })
 
+  it('should set role to STUDENT when token has STUDENT role', () => {
+    const req = createMockReq('Bearer student-token')
+    const res = createMockRes()
+
+    mockVerify.mockReturnValue({ sub: 'student-1', role: 'STUDENT' })
+
+    requireAuth(
+      req as Request,
+      res as unknown as Response,
+      next as NextFunction
+    )
+
+    expect(next).toHaveBeenCalled()
+    expect(res.locals.auth).toEqual({
+      userId: 'student-1',
+      role: 'STUDENT',
+    })
+  })
+
   it('should default role to USER when token role is not ADMIN', () => {
     const req = createMockReq('Bearer some-token')
     const res = createMockRes()

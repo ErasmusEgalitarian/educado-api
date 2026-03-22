@@ -4,7 +4,7 @@ import { getAccessTokenSecret } from '../../../config/jwt'
 
 type AuthContext = {
   userId: string
-  role: 'USER' | 'ADMIN'
+  role: 'USER' | 'ADMIN' | 'STUDENT'
 }
 
 export const getAuthContext = (res: Response): AuthContext => {
@@ -36,7 +36,12 @@ export const requireAuth = (
     const decoded = jwt.verify(token, secret) as JwtPayload
 
     const userId = typeof decoded.sub === 'string' ? decoded.sub : ''
-    const role = decoded.role === 'ADMIN' ? 'ADMIN' : 'USER'
+    const VALID_ROLES = ['ADMIN', 'STUDENT', 'USER'] as const
+    const role = VALID_ROLES.includes(
+      decoded.role as (typeof VALID_ROLES)[number]
+    )
+      ? (decoded.role as AuthContext['role'])
+      : 'USER'
 
     if (!userId) {
       return res.status(401).json({ code: 'UNAUTHORIZED' })

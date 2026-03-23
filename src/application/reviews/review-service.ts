@@ -59,6 +59,17 @@ export const submitReview = async (userId: string, input: ReviewInput) => {
   }
 }
 
+export const hasUserReviewedCourse = async (
+  userId: string,
+  courseId: string
+): Promise<boolean> => {
+  const review = await CourseReview.findOne({
+    where: { userId, courseId },
+    attributes: ['id'],
+  })
+  return review !== null
+}
+
 export const getCourseReviews = async (
   courseId: string,
   page = 1,

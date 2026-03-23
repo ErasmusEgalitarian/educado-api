@@ -14,6 +14,13 @@ import { MediaAsset } from './media-asset.model'
 import { Institution } from './institution.model'
 import { EmailVerification } from './email-verification.model'
 import { PasswordReset } from './password-reset.model'
+import { Enrollment } from './enrollment.model'
+import { ActivityProgress } from './activity-progress.model'
+import { PointsLedger } from './points-ledger.model'
+import { StudentStats } from './student-stats.model'
+import { Badge } from './badge.model'
+import { StudentBadge } from './student-badge.model'
+import { CourseReview } from './course-review.model'
 
 // Define all associations here to avoid circular dependency issues
 
@@ -106,6 +113,44 @@ User.belongsTo(MediaAsset, { foreignKey: 'avatarMediaId', as: 'avatar' })
 EmailVerification.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 PasswordReset.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 
+// Enrollment relationships
+User.hasMany(Enrollment, { foreignKey: 'userId', as: 'enrollments' })
+Course.hasMany(Enrollment, { foreignKey: 'courseId', as: 'enrollments' })
+Enrollment.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+Enrollment.belongsTo(Course, { foreignKey: 'courseId', as: 'course' })
+
+// ActivityProgress relationships
+SectionProgress.hasMany(ActivityProgress, {
+  foreignKey: 'sectionProgressId',
+  as: 'activityProgress',
+})
+ActivityProgress.belongsTo(SectionProgress, {
+  foreignKey: 'sectionProgressId',
+  as: 'sectionProgress',
+})
+ActivityProgress.belongsTo(Activity, {
+  foreignKey: 'activityId',
+  as: 'activity',
+})
+ActivityProgress.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+
+// Gamification relationships
+User.hasMany(PointsLedger, { foreignKey: 'userId', as: 'pointsLedger' })
+User.hasOne(StudentStats, { foreignKey: 'userId', as: 'studentStats' })
+User.hasMany(StudentBadge, { foreignKey: 'userId', as: 'studentBadges' })
+PointsLedger.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+PointsLedger.belongsTo(Course, { foreignKey: 'courseId', as: 'course' })
+StudentStats.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+StudentBadge.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+StudentBadge.belongsTo(Badge, { foreignKey: 'badgeId', as: 'badge' })
+Badge.hasMany(StudentBadge, { foreignKey: 'badgeId', as: 'studentBadges' })
+
+// CourseReview relationships
+User.hasMany(CourseReview, { foreignKey: 'userId', as: 'reviews' })
+Course.hasMany(CourseReview, { foreignKey: 'courseId', as: 'reviews' })
+CourseReview.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+CourseReview.belongsTo(Course, { foreignKey: 'courseId', as: 'course' })
+
 export {
   User,
   Course,
@@ -122,4 +167,11 @@ export {
   Institution,
   EmailVerification,
   PasswordReset,
+  Enrollment,
+  ActivityProgress,
+  PointsLedger,
+  StudentStats,
+  Badge,
+  StudentBadge,
+  CourseReview,
 }

@@ -14,6 +14,9 @@ export class User extends Model {
   declare lastLoginAt: Date | null
   declare username: string | null
   declare avatarMediaId: string | null
+  declare phone: string | null
+  declare dateOfBirth: string | null
+  declare deviceId: string | null
   declare createdAt: Date
   declare updatedAt: Date
 }
@@ -73,6 +76,18 @@ User.init(
         key: 'id',
       },
     },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    dateOfBirth: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    deviceId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,
@@ -88,6 +103,10 @@ User.init(
       {
         name: 'users_username_idx',
         fields: ['username'],
+      },
+      {
+        name: 'users_device_id_idx',
+        fields: ['deviceId'],
       },
     ],
   }

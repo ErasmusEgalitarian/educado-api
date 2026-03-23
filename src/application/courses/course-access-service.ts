@@ -2,7 +2,7 @@ import { FindOptions, Op, WhereOptions } from 'sequelize'
 import { AppError } from '../common/app-error'
 import { Course } from '../../models/course.model'
 
-type AuthRole = 'ADMIN' | 'USER'
+type AuthRole = 'ADMIN' | 'USER' | 'STUDENT'
 
 type AuthContext = {
   userId: string

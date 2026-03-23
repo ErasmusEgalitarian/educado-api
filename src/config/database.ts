@@ -15,6 +15,9 @@ export const sequelize = new Sequelize(postgresUri ?? '', {
   dialect: 'postgres',
   database: isProd() ? 'educado' : 'educado_dev',
   logging: false,
+  define: {
+    underscored: true,
+  },
 })
 
 // Test database connection

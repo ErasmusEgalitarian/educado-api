@@ -3,7 +3,10 @@ import { AppError } from '../../application/common/app-error'
 import { getAuthContext } from '../../interface/http/middlewares/auth-jwt'
 import { requireRole } from '../../interface/http/middlewares/require-role'
 import { validateReviewInput } from '../../application/reviews/review-validation'
-import { submitReview } from '../../application/reviews/review-service'
+import {
+  submitReview,
+  hasUserReviewedCourse,
+} from '../../application/reviews/review-service'
 
 const router = Router()
 
@@ -28,6 +31,17 @@ const handleError = (_req: Request, res: Response, error: unknown) => {
 }
 
 router.use(requireRole('STUDENT'))
+
+router.get('/check/:courseId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = getAuthContext(res)
+    const courseId = req.params.courseId as string
+    const hasReviewed = await hasUserReviewedCourse(userId, courseId)
+    return res.status(200).json({ hasReviewed })
+  } catch (error) {
+    return handleError(req, res, error)
+  }
+})
 
 router.post('/', async (req: Request, res: Response) => {
   try {

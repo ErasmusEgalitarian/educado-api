@@ -9,6 +9,10 @@ export class Certificate extends Model {
   declare completedAt: Date
   declare userName: string
   declare totalSections: number
+  declare pdfS3Key: string | null
+  declare verificationCode: string | null
+  declare instructorName: string | null
+  declare totalHours: string | null
   declare createdAt: Date
   declare updatedAt: Date
 }
@@ -51,6 +55,23 @@ Certificate.init(
     totalSections: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    pdfS3Key: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    verificationCode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
+    instructorName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    totalHours: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

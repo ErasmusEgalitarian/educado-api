@@ -1,6 +1,6 @@
 type UserAccessContext = {
   userId: string
-  role: 'USER' | 'ADMIN'
+  role: 'USER' | 'ADMIN' | 'STUDENT'
 }
 
 type MediaOwner = {

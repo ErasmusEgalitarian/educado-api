@@ -7,7 +7,7 @@ import { MediaAsset } from '../../models'
 
 type StreamAuthContext = {
   userId: string
-  role: 'USER' | 'ADMIN'
+  role: 'USER' | 'ADMIN' | 'STUDENT'
 }
 
 function getStreamAuth(req: Request): StreamAuthContext | null {
@@ -29,8 +29,12 @@ function getStreamAuth(req: Request): StreamAuthContext | null {
     const secret = getAccessTokenSecret()
     const decoded = jwt.verify(token, secret) as JwtPayload
     const userId = typeof decoded.sub === 'string' ? decoded.sub : ''
-    const role =
-      decoded.role === 'ADMIN' ? ('ADMIN' as const) : ('USER' as const)
+    const VALID_ROLES = ['ADMIN', 'STUDENT', 'USER'] as const
+    const role = VALID_ROLES.includes(
+      decoded.role as (typeof VALID_ROLES)[number]
+    )
+      ? (decoded.role as StreamAuthContext['role'])
+      : 'USER'
     if (!userId) return null
     return { userId, role }
   } catch {
@@ -57,7 +61,12 @@ router.get('/:id/stream', async (req: Request, res: Response) => {
       return res.status(401).json({ code: 'UNAUTHORIZED' })
     }
 
-    if (!canAccessMedia(user, { ownerId: media.ownerId })) {
+    // Students can access any active media (course content)
+    // Owners and admins can access their own media
+    if (
+      user.role !== 'STUDENT' &&
+      !canAccessMedia(user, { ownerId: media.ownerId })
+    ) {
       return res.status(403).json({ code: 'FORBIDDEN' })
     }
 

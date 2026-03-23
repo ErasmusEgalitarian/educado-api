@@ -56,15 +56,15 @@ CourseProgress.init(
     indexes: [
       {
         name: 'course_progress_user_idx',
-        fields: ['userId'],
+        fields: ['user_id'],
       },
       {
         name: 'course_progress_course_idx',
-        fields: ['courseId'],
+        fields: ['course_id'],
       },
       {
         name: 'course_progress_user_course_idx',
-        fields: ['userId', 'courseId'],
+        fields: ['user_id', 'course_id'],
         unique: true,
       },
     ],

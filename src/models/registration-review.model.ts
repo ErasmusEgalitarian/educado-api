@@ -56,11 +56,11 @@ RegistrationReview.init(
     indexes: [
       {
         name: 'registration_reviews_user_id_idx',
-        fields: ['userId'],
+        fields: ['user_id'],
       },
       {
         name: 'registration_reviews_reviewed_by_idx',
-        fields: ['reviewedBy'],
+        fields: ['reviewed_by'],
       },
     ],
   }

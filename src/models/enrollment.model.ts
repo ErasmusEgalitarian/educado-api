@@ -61,16 +61,16 @@ Enrollment.init(
     indexes: [
       {
         name: 'enrollment_user_course_uq',
-        fields: ['userId', 'courseId'],
+        fields: ['user_id', 'course_id'],
         unique: true,
       },
       {
         name: 'enrollment_user_idx',
-        fields: ['userId'],
+        fields: ['user_id'],
       },
       {
         name: 'enrollment_course_idx',
-        fields: ['courseId'],
+        fields: ['course_id'],
       },
       {
         name: 'enrollment_status_idx',

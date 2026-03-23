@@ -54,9 +54,15 @@ PointsLedger.init(
     timestamps: true,
     updatedAt: false,
     indexes: [
-      { name: 'points_ledger_user_idx', fields: ['userId'] },
-      { name: 'points_ledger_user_earned_idx', fields: ['userId', 'earnedAt'] },
-      { name: 'points_ledger_user_course_idx', fields: ['userId', 'courseId'] },
+      { name: 'points_ledger_user_idx', fields: ['user_id'] },
+      {
+        name: 'points_ledger_user_earned_idx',
+        fields: ['user_id', 'earned_at'],
+      },
+      {
+        name: 'points_ledger_user_course_idx',
+        fields: ['user_id', 'course_id'],
+      },
     ],
   }
 )

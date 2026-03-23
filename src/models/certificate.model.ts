@@ -82,11 +82,11 @@ Certificate.init(
     indexes: [
       {
         name: 'certificate_user_idx',
-        fields: ['userId'],
+        fields: ['user_id'],
       },
       {
         name: 'certificate_course_idx',
-        fields: ['courseId'],
+        fields: ['course_id'],
       },
     ],
   }

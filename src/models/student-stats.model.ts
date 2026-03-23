@@ -71,7 +71,7 @@ StudentStats.init(
     indexes: [
       {
         name: 'student_stats_user_uq',
-        fields: ['userId'],
+        fields: ['user_id'],
         unique: true,
       },
     ],

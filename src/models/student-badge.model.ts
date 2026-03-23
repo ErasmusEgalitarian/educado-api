@@ -41,12 +41,12 @@ StudentBadge.init(
     indexes: [
       {
         name: 'student_badge_user_badge_uq',
-        fields: ['userId', 'badgeId'],
+        fields: ['user_id', 'badge_id'],
         unique: true,
       },
       {
         name: 'student_badge_user_idx',
-        fields: ['userId'],
+        fields: ['user_id'],
       },
     ],
   }

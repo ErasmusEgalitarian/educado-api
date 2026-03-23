@@ -79,12 +79,12 @@ MediaAsset.init(
     indexes: [
       {
         name: 'media_asset_s3_key_uq',
-        fields: ['s3Key'],
+        fields: ['s3_key'],
         unique: true,
       },
       {
         name: 'media_asset_owner_idx',
-        fields: ['ownerId'],
+        fields: ['owner_id'],
       },
       {
         name: 'media_asset_kind_idx',

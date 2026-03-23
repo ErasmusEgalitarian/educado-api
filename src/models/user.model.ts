@@ -97,7 +97,7 @@ User.init(
     indexes: [
       {
         name: 'user_email_normalized_uq',
-        fields: ['emailNormalized'],
+        fields: ['email_normalized'],
         unique: true,
       },
       {
@@ -106,7 +106,7 @@ User.init(
       },
       {
         name: 'users_device_id_idx',
-        fields: ['deviceId'],
+        fields: ['device_id'],
       },
     ],
   }

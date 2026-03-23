@@ -57,12 +57,12 @@ Institution.init(
       },
       {
         name: 'institution_secondary_domain_uq',
-        fields: ['secondaryDomain'],
+        fields: ['secondary_domain'],
         unique: true,
       },
       {
         name: 'institution_active_idx',
-        fields: ['isActive'],
+        fields: ['is_active'],
       },
     ],
   }

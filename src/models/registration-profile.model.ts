@@ -48,7 +48,7 @@ RegistrationProfile.init(
     indexes: [
       {
         name: 'registration_profiles_user_id_uq',
-        fields: ['userId'],
+        fields: ['user_id'],
         unique: true,
       },
     ],

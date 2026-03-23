@@ -51,12 +51,12 @@ CourseReview.init(
     indexes: [
       {
         name: 'course_review_user_course_uq',
-        fields: ['userId', 'courseId'],
+        fields: ['user_id', 'course_id'],
         unique: true,
       },
       {
         name: 'course_review_course_idx',
-        fields: ['courseId'],
+        fields: ['course_id'],
       },
     ],
   }

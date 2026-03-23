@@ -75,11 +75,11 @@ EmailVerification.init(
     indexes: [
       {
         name: 'email_verifications_user_id_idx',
-        fields: ['userId'],
+        fields: ['user_id'],
       },
       {
         name: 'email_verifications_expires_at_idx',
-        fields: ['expiresAt'],
+        fields: ['expires_at'],
       },
     ],
   }

@@ -101,7 +101,7 @@ Course.init(
     indexes: [
       {
         name: 'course_owner_idx',
-        fields: ['ownerId'],
+        fields: ['owner_id'],
       },
       {
         name: 'course_category_idx',
@@ -113,7 +113,7 @@ Course.init(
       },
       {
         name: 'course_active_idx',
-        fields: ['isActive'],
+        fields: ['is_active'],
       },
     ],
   }

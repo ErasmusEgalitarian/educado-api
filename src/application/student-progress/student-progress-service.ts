@@ -1,4 +1,5 @@
 import { AppError } from '../common/app-error'
+import { awardPoints } from '../gamification/gamification-service'
 import {
   User,
   Course,
@@ -270,6 +271,18 @@ export const saveStudentSectionProgress = async (
     })
   }
 
+  // Award gamification points on first completion
+  if (created) {
+    try {
+      await awardPoints(userId, 'SECTION_COMPLETE', courseId)
+      if (totalQuestions > 0 && score === totalQuestions) {
+        await awardPoints(userId, 'PERFECT_SCORE', courseId)
+      }
+    } catch {
+      // Non-critical — don't fail the request
+    }
+  }
+
   return {
     sectionId,
     completed: true,
@@ -334,6 +347,13 @@ export const completeStudentCourse = async (
         completedAt: now,
       })
     }
+  }
+
+  // Award gamification points for course completion
+  try {
+    await awardPoints(userId, 'COURSE_COMPLETE', courseId)
+  } catch {
+    // Non-critical — don't fail the request
   }
 
   return {

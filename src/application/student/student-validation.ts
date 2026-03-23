@@ -15,6 +15,7 @@ export type StudentProfileUpdateInput = {
   email?: string
   phone?: string
   dateOfBirth?: string
+  avatarMediaId?: string | null
 }
 
 type FieldErrors = Record<string, string>
@@ -164,6 +165,19 @@ export const validateStudentProfileUpdate = (
         fieldErrors.dateOfBirth = 'MUST_BE_PAST'
       } else {
         data.dateOfBirth = dateOfBirth
+      }
+    }
+  }
+
+  if (body.avatarMediaId !== undefined) {
+    if (body.avatarMediaId === null || body.avatarMediaId === '') {
+      data.avatarMediaId = null
+    } else {
+      const avatarMediaId = normalizeText(body.avatarMediaId)
+      if (avatarMediaId.length > 255) {
+        fieldErrors.avatarMediaId = 'LENGTH_INVALID'
+      } else {
+        data.avatarMediaId = avatarMediaId
       }
     }
   }

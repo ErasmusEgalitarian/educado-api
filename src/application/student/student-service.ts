@@ -145,6 +145,8 @@ export const updateStudentProfile = async (
   if (input.phone !== undefined) updateData.phone = input.phone ?? null
   if (input.dateOfBirth !== undefined)
     updateData.dateOfBirth = input.dateOfBirth ?? null
+  if (input.avatarMediaId !== undefined)
+    updateData.avatarMediaId = input.avatarMediaId
 
   await user.update(updateData)
 

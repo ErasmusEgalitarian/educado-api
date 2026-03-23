@@ -74,11 +74,11 @@ PasswordReset.init(
     indexes: [
       {
         name: 'password_resets_user_id_idx',
-        fields: ['userId'],
+        fields: ['user_id'],
       },
       {
         name: 'password_resets_expires_at_idx',
-        fields: ['expiresAt'],
+        fields: ['expires_at'],
       },
     ],
   }

@@ -56,11 +56,11 @@ Section.init(
     indexes: [
       {
         name: 'section_course_idx',
-        fields: ['courseId'],
+        fields: ['course_id'],
       },
       {
         name: 'section_order_idx',
-        fields: ['courseId', 'order'],
+        fields: ['course_id', 'order'],
       },
     ],
   }

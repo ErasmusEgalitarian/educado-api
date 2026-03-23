@@ -73,12 +73,12 @@ ActivityProgress.init(
     indexes: [
       {
         name: 'activity_progress_user_activity_uq',
-        fields: ['userId', 'activityId'],
+        fields: ['user_id', 'activity_id'],
         unique: true,
       },
       {
         name: 'activity_progress_section_progress_idx',
-        fields: ['sectionProgressId'],
+        fields: ['section_progress_id'],
       },
     ],
   }

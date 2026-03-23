@@ -41,15 +41,15 @@ CourseTag.init(
     indexes: [
       {
         name: 'course_tag_course_idx',
-        fields: ['courseId'],
+        fields: ['course_id'],
       },
       {
         name: 'course_tag_tag_idx',
-        fields: ['tagId'],
+        fields: ['tag_id'],
       },
       {
         name: 'course_tag_unique_idx',
-        fields: ['courseId', 'tagId'],
+        fields: ['course_id', 'tag_id'],
         unique: true,
       },
     ],

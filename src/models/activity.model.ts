@@ -92,11 +92,11 @@ Activity.init(
     indexes: [
       {
         name: 'activity_section_idx',
-        fields: ['sectionId'],
+        fields: ['section_id'],
       },
       {
         name: 'activity_order_idx',
-        fields: ['sectionId', 'order'],
+        fields: ['section_id', 'order'],
       },
     ],
   }

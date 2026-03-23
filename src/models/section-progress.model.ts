@@ -63,15 +63,15 @@ SectionProgress.init(
     indexes: [
       {
         name: 'section_progress_course_progress_idx',
-        fields: ['courseProgressId'],
+        fields: ['course_progress_id'],
       },
       {
         name: 'section_progress_section_idx',
-        fields: ['sectionId'],
+        fields: ['section_id'],
       },
       {
         name: 'section_progress_unique_idx',
-        fields: ['courseProgressId', 'sectionId'],
+        fields: ['course_progress_id', 'section_id'],
         unique: true,
       },
     ],

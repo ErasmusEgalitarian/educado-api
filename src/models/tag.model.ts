@@ -56,7 +56,7 @@ Tag.init(
       },
       {
         name: 'tag_active_idx',
-        fields: ['isActive'],
+        fields: ['is_active'],
       },
     ],
   }

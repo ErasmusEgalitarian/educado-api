@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto'
 import jwt from 'jsonwebtoken'
+import { UniqueConstraintError } from 'sequelize'
 import { AppError } from '../common/app-error'
 import { hashPassword } from '../../infrastructure/security/password-hasher'
 import { getAccessTokenSecret } from '../../config/jwt'
@@ -29,20 +30,28 @@ const signStudentToken = (userId: string): string => {
 export const registerStudent = async (input: StudentRegistrationInput) => {
   const passwordHash = await hashPassword(generateRandomPassword())
 
-  const user = await User.create({
-    firstName: input.firstName,
-    lastName: input.lastName,
-    email: input.email ?? `student-${randomBytes(8).toString('hex')}@local`,
-    emailNormalized:
-      input.email?.toLowerCase().trim() ??
-      `student-${randomBytes(8).toString('hex')}@local`,
-    passwordHash,
-    status: 'APPROVED',
-    role: 'STUDENT',
-    phone: input.phone ?? null,
-    dateOfBirth: input.dateOfBirth ?? null,
-    deviceId: input.deviceId ?? null,
-  })
+  let user
+  try {
+    user = await User.create({
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: input.email ?? `student-${randomBytes(8).toString('hex')}@local`,
+      emailNormalized:
+        input.email?.toLowerCase().trim() ??
+        `student-${randomBytes(8).toString('hex')}@local`,
+      passwordHash,
+      status: 'APPROVED',
+      role: 'STUDENT',
+      phone: input.phone ?? null,
+      dateOfBirth: input.dateOfBirth ?? null,
+      deviceId: input.deviceId ?? null,
+    })
+  } catch (error) {
+    if (error instanceof UniqueConstraintError) {
+      throw new AppError(409, { code: 'EMAIL_ALREADY_EXISTS' })
+    }
+    throw error
+  }
 
   const accessToken = signStudentToken(user.id)
 

@@ -9,10 +9,11 @@ export class MediaAsset extends Model {
   declare filename: string
   declare contentType: string
   declare size: number
-  declare status: 'ACTIVE' | 'INACTIVE'
+  declare status: 'PENDING' | 'ACTIVE' | 'INACTIVE'
   declare title: string | null
   declare altText: string | null
   declare description: string | null
+  declare uploadId: string | null
   declare createdAt: Date
   declare updatedAt: Date
 }
@@ -54,7 +55,7 @@ MediaAsset.init(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM('ACTIVE', 'INACTIVE'),
+      type: DataTypes.ENUM('PENDING', 'ACTIVE', 'INACTIVE'),
       allowNull: false,
       defaultValue: 'ACTIVE',
     },
@@ -68,6 +69,10 @@ MediaAsset.init(
     },
     description: {
       type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    uploadId: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
   },

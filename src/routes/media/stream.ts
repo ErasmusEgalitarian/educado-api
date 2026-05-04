@@ -70,8 +70,8 @@ router.get('/:id/stream', async (req: Request, res: Response) => {
       return res.status(403).json({ code: 'FORBIDDEN' })
     }
 
-    if (media.status === 'INACTIVE') {
-      return res.status(403).json({ code: 'MEDIA_INACTIVE' })
+    if (media.status !== 'ACTIVE') {
+      return res.status(403).json({ code: 'MEDIA_NOT_AVAILABLE' })
     }
 
     const s3Response = await getFromS3(media.s3Key)

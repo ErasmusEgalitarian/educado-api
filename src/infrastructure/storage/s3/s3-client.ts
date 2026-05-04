@@ -11,10 +11,30 @@ import {
 } from '@aws-sdk/client-s3'
 import { randomUUID } from 'crypto'
 
-const getS3Client = () => {
+type RetryableS3Error = NodeJS.ErrnoException & {
+  $metadata?: {
+    attempts?: number
+    totalRetryDelay?: number
+  }
+}
+
+type S3Command = unknown
+
+const DEFAULT_S3_ENDPOINT = 'http://localhost:9000'
+const DEFAULT_S3_REGION = 'us-east-1'
+const DEFAULT_S3_MAX_ATTEMPTS = 3
+const DEFAULT_S3_RETRY_DELAY_MS = 150
+const RETRYABLE_S3_ERROR_CODES = new Set([
+  'EAI_AGAIN',
+  'ENOTFOUND',
+  'ECONNRESET',
+  'ETIMEDOUT',
+])
+
+const getS3Client = (endpoint: string) => {
   return new S3Client({
-    endpoint: process.env.S3_ENDPOINT || 'http://localhost:9000',
-    region: process.env.S3_REGION || 'us-east-1',
+    endpoint,
+    region: process.env.S3_REGION || DEFAULT_S3_REGION,
     credentials: {
       accessKeyId: process.env.S3_ACCESS_KEY || 'minioadmin',
       secretAccessKey: process.env.S3_SECRET_KEY || 'minioadmin',
@@ -24,6 +44,108 @@ const getS3Client = () => {
 }
 
 const getBucket = () => process.env.S3_BUCKET || 'educado-media'
+
+const getS3Endpoints = (): string[] => {
+  const rawEndpoints =
+    process.env.S3_ENDPOINTS || process.env.S3_ENDPOINT || DEFAULT_S3_ENDPOINT
+
+  const endpoints = rawEndpoints
+    .split(',')
+    .map((endpoint) => endpoint.trim())
+    .filter((endpoint) => endpoint.length > 0)
+
+  return endpoints.length > 0 ? [...new Set(endpoints)] : [DEFAULT_S3_ENDPOINT]
+}
+
+const getS3MaxAttempts = (): number => {
+  const parsedValue = Number.parseInt(
+    process.env.S3_MAX_ATTEMPTS || `${DEFAULT_S3_MAX_ATTEMPTS}`,
+    10
+  )
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+    return DEFAULT_S3_MAX_ATTEMPTS
+  }
+
+  return parsedValue
+}
+
+const getS3RetryDelayMs = (): number => {
+  const parsedValue = Number.parseInt(
+    process.env.S3_RETRY_DELAY_MS || `${DEFAULT_S3_RETRY_DELAY_MS}`,
+    10
+  )
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+    return DEFAULT_S3_RETRY_DELAY_MS
+  }
+
+  return parsedValue
+}
+
+const wait = async (ms: number): Promise<void> => {
+  if (ms <= 0) {
+    return
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+const isRetryableS3Error = (
+  error: unknown
+): error is RetryableS3Error & Error => {
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  const errorCode = (error as RetryableS3Error).code
+  return typeof errorCode === 'string' && RETRYABLE_S3_ERROR_CODES.has(errorCode)
+}
+
+const buildRetriedS3Error = (
+  error: unknown,
+  endpoints: string[],
+  attempts: number
+): Error => {
+  const endpointList = endpoints.join(', ')
+
+  if (error instanceof Error) {
+    error.message = `S3 request failed after ${attempts} attempt(s) across endpoint(s): ${endpointList}. ${error.message}`
+    return error
+  }
+
+  return new Error(
+    `S3 request failed after ${attempts} attempt(s) across endpoint(s): ${endpointList}.`
+  )
+}
+
+const sendS3Command = async <T>(buildCommand: () => S3Command): Promise<T> => {
+  const endpoints = getS3Endpoints()
+  const maxAttempts = getS3MaxAttempts()
+  const retryDelayMs = getS3RetryDelayMs()
+  let lastError: unknown = null
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    for (const endpoint of endpoints) {
+      try {
+        const client = getS3Client(endpoint)
+        return (await client.send(buildCommand() as never)) as T
+      } catch (error) {
+        lastError = error
+
+        if (!isRetryableS3Error(error)) {
+          throw error
+        }
+      }
+    }
+
+    if (attempt < maxAttempts) {
+      await wait(retryDelayMs * attempt)
+    }
+  }
+
+  throw buildRetriedS3Error(lastError, endpoints, maxAttempts)
+}
 
 export const buildMediaKey = (
   ownerId: string,
@@ -41,10 +163,9 @@ export const uploadToS3 = async (
   ownerId: string,
   kind: string
 ): Promise<string> => {
-  const client = getS3Client()
   const key = buildMediaKey(ownerId, kind, file.originalname)
 
-  await client.send(
+  await sendS3Command(() =>
     new PutObjectCommand({
       Bucket: getBucket(),
       Key: key,
@@ -59,9 +180,10 @@ export const uploadToS3 = async (
 export const getFromS3 = async (
   key: string
 ): Promise<{ body: NodeJS.ReadableStream; contentType: string }> => {
-  const client = getS3Client()
-
-  const response = await client.send(
+  const response = await sendS3Command<{
+    Body?: NodeJS.ReadableStream
+    ContentType?: string
+  }>(() =>
     new GetObjectCommand({
       Bucket: getBucket(),
       Key: key,
@@ -75,9 +197,7 @@ export const getFromS3 = async (
 }
 
 export const deleteFromS3 = async (key: string): Promise<void> => {
-  const client = getS3Client()
-
-  await client.send(
+  await sendS3Command(() =>
     new DeleteObjectCommand({
       Bucket: getBucket(),
       Key: key,
@@ -88,9 +208,11 @@ export const deleteFromS3 = async (key: string): Promise<void> => {
 export const headS3Object = async (
   key: string
 ): Promise<{ size: number; contentType: string } | null> => {
-  const client = getS3Client()
   try {
-    const response = await client.send(
+    const response = await sendS3Command<{
+      ContentLength?: number
+      ContentType?: string
+    }>(() =>
       new HeadObjectCommand({
         Bucket: getBucket(),
         Key: key,
@@ -111,8 +233,9 @@ export const initMultipartUpload = async (
   key: string,
   contentType: string
 ): Promise<string> => {
-  const client = getS3Client()
-  const response = await client.send(
+  const response = await sendS3Command<{
+    UploadId?: string
+  }>(() =>
     new CreateMultipartUploadCommand({
       Bucket: getBucket(),
       Key: key,
@@ -131,8 +254,9 @@ export const uploadPartToS3 = async (
   partNumber: number,
   body: Buffer
 ): Promise<string> => {
-  const client = getS3Client()
-  const response = await client.send(
+  const response = await sendS3Command<{
+    ETag?: string
+  }>(() =>
     new UploadPartCommand({
       Bucket: getBucket(),
       Key: key,
@@ -152,8 +276,7 @@ export const completeMultipartUpload = async (
   uploadId: string,
   parts: { partNumber: number; etag: string }[]
 ): Promise<void> => {
-  const client = getS3Client()
-  await client.send(
+  await sendS3Command(() =>
     new CompleteMultipartUploadCommand({
       Bucket: getBucket(),
       Key: key,
@@ -172,8 +295,7 @@ export const abortMultipartUpload = async (
   key: string,
   uploadId: string
 ): Promise<void> => {
-  const client = getS3Client()
-  await client.send(
+  await sendS3Command(() =>
     new AbortMultipartUploadCommand({
       Bucket: getBucket(),
       Key: key,

@@ -1,7 +1,10 @@
 import { Request, Response, Router } from 'express'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { canAccessMedia } from '../../application/media/media-access-service'
-import { getFromS3 } from '../../infrastructure/storage/s3/s3-client'
+import {
+  getFromS3,
+  headS3Object,
+} from '../../infrastructure/storage/s3/s3-client'
 import { getAccessTokenSecret } from '../../config/jwt'
 import { MediaAsset } from '../../models'
 
@@ -74,9 +77,38 @@ router.get('/:id/stream', async (req: Request, res: Response) => {
       return res.status(403).json({ code: 'MEDIA_NOT_AVAILABLE' })
     }
 
-    const s3Response = await getFromS3(media.s3Key)
-    res.setHeader('Content-Type', s3Response.contentType)
-    s3Response.body.pipe(res)
+    const meta = await headS3Object(media.s3Key)
+    if (!meta) {
+      return res.status(404).json({ code: 'MEDIA_NOT_FOUND' })
+    }
+    const fileSize = meta.size
+    const contentType = meta.contentType
+
+    res.setHeader('Accept-Ranges', 'bytes')
+    res.setHeader('Content-Type', contentType)
+
+    const rangeHeader = req.headers.range
+    if (rangeHeader && fileSize > 0) {
+      const [startStr, endStr] = rangeHeader.replace(/bytes=/, '').split('-')
+      const start = parseInt(startStr, 10)
+      const end = endStr ? parseInt(endStr, 10) : fileSize - 1
+      const clampedEnd = Math.min(end, fileSize - 1)
+      const chunkSize = clampedEnd - start + 1
+
+      res.setHeader('Content-Range', `bytes ${start}-${clampedEnd}/${fileSize}`)
+      res.setHeader('Content-Length', String(chunkSize))
+      res.status(206)
+      const s3Response = await getFromS3(
+        media.s3Key,
+        `bytes=${start}-${clampedEnd}`
+      )
+      s3Response.body.pipe(res)
+    } else {
+      if (fileSize > 0) res.setHeader('Content-Length', String(fileSize))
+      res.status(200)
+      const s3Response = await getFromS3(media.s3Key)
+      s3Response.body.pipe(res)
+    }
     return
   } catch (error) {
     console.error('Stream media route error', error)

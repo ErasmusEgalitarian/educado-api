@@ -1,6 +1,6 @@
 import { config } from 'dotenv'
 import { syncDatabase, testDatabaseConnection } from '../config/database'
-import { Course, Section, Activity, User } from '../models'
+import { Course, Section, Activity, User, MediaAsset } from '../models'
 
 // Load environment variables
 config()
@@ -701,7 +701,7 @@ async function seedCourses() {
     await testDatabaseConnection()
 
     console.log('Syncing database...')
-    await syncDatabase(true) // Force sync to drop and recreate tables
+    await syncDatabase(false)
 
     console.log('Seeding courses...')
 
@@ -725,13 +725,25 @@ async function seedCourses() {
     for (const courseData of mockCourses) {
       console.log(`Creating course: ${courseData.title}`)
 
+      // Create placeholder image media asset for the course cover
+      const coverAsset = await MediaAsset.create({
+        ownerId: owner.id,
+        kind: 'image',
+        s3Key: `seed/placeholder-cover-${courseData.id}`,
+        filename: `${courseData.imageUrl || 'placeholder'}.jpg`,
+        contentType: 'image/jpeg',
+        size: 0,
+        status: 'ACTIVE',
+        title: courseData.title,
+      })
+
       // Create course
       await Course.create({
         id: courseData.id,
         title: courseData.title,
         description: courseData.description,
         shortDescription: courseData.shortDescription,
-        imageUrl: courseData.imageUrl,
+        imageMediaId: coverAsset.id,
         difficulty: courseData.difficulty,
         estimatedTime: courseData.estimatedTime,
         passingThreshold: courseData.passingThreshold,
@@ -755,8 +767,8 @@ async function seedCourses() {
           id: sectionData.id,
           courseId: courseData.id,
           title: sectionData.title,
-          videoUrl: sectionData.videoUrl || null,
-          thumbnailUrl: sectionData.thumbnailUrl || null,
+          videoMediaId: null,
+          thumbnailMediaId: null,
           duration: sectionData.duration || null,
           order: sectionIndex,
         })
@@ -779,7 +791,7 @@ async function seedCourses() {
               icon: question.icon || null,
               pauseTimestamp: null,
               textPages: null,
-              imageUrl: null,
+              imageMediaId: null,
             })
           }
         }
@@ -796,7 +808,7 @@ async function seedCourses() {
               pauseTimestamp: activity.pauseTimestamp || null,
               textPages: activity.textPages || null,
               question: activity.question || null,
-              imageUrl: activity.imageUrl || null,
+              imageMediaId: null,
               options: activity.options || null,
               correctAnswer:
                 activity.correctAnswer !== undefined

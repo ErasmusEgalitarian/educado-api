@@ -99,7 +99,9 @@ const isRetryableS3Error = (
   }
 
   const errorCode = (error as RetryableS3Error).code
-  return typeof errorCode === 'string' && RETRYABLE_S3_ERROR_CODES.has(errorCode)
+  return (
+    typeof errorCode === 'string' && RETRYABLE_S3_ERROR_CODES.has(errorCode)
+  )
 }
 
 const buildRetriedS3Error = (
@@ -165,43 +167,54 @@ export const uploadToS3 = async (
 ): Promise<string> => {
   const key = buildMediaKey(ownerId, kind, file.originalname)
 
-  await sendS3Command(() =>
-    new PutObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    })
+  await sendS3Command(
+    () =>
+      new PutObjectCommand({
+        Bucket: getBucket(),
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      })
   )
 
   return key
 }
 
 export const getFromS3 = async (
-  key: string
-): Promise<{ body: NodeJS.ReadableStream; contentType: string }> => {
+  key: string,
+  range?: string
+): Promise<{
+  body: NodeJS.ReadableStream
+  contentType: string
+  contentLength?: number
+}> => {
   const response = await sendS3Command<{
     Body?: NodeJS.ReadableStream
     ContentType?: string
-  }>(() =>
-    new GetObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-    })
+    ContentLength?: number
+  }>(
+    () =>
+      new GetObjectCommand({
+        Bucket: getBucket(),
+        Key: key,
+        ...(range ? { Range: range } : {}),
+      })
   )
 
   return {
     body: response.Body as NodeJS.ReadableStream,
     contentType: response.ContentType || 'application/octet-stream',
+    contentLength: response.ContentLength,
   }
 }
 
 export const deleteFromS3 = async (key: string): Promise<void> => {
-  await sendS3Command(() =>
-    new DeleteObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-    })
+  await sendS3Command(
+    () =>
+      new DeleteObjectCommand({
+        Bucket: getBucket(),
+        Key: key,
+      })
   )
 }
 
@@ -212,11 +225,12 @@ export const headS3Object = async (
     const response = await sendS3Command<{
       ContentLength?: number
       ContentType?: string
-    }>(() =>
-      new HeadObjectCommand({
-        Bucket: getBucket(),
-        Key: key,
-      })
+    }>(
+      () =>
+        new HeadObjectCommand({
+          Bucket: getBucket(),
+          Key: key,
+        })
     )
     return {
       size: response.ContentLength ?? 0,
@@ -235,12 +249,13 @@ export const initMultipartUpload = async (
 ): Promise<string> => {
   const response = await sendS3Command<{
     UploadId?: string
-  }>(() =>
-    new CreateMultipartUploadCommand({
-      Bucket: getBucket(),
-      Key: key,
-      ContentType: contentType,
-    })
+  }>(
+    () =>
+      new CreateMultipartUploadCommand({
+        Bucket: getBucket(),
+        Key: key,
+        ContentType: contentType,
+      })
   )
   if (!response.UploadId) {
     throw new Error('S3 did not return an UploadId')
@@ -256,14 +271,15 @@ export const uploadPartToS3 = async (
 ): Promise<string> => {
   const response = await sendS3Command<{
     ETag?: string
-  }>(() =>
-    new UploadPartCommand({
-      Bucket: getBucket(),
-      Key: key,
-      UploadId: uploadId,
-      PartNumber: partNumber,
-      Body: body,
-    })
+  }>(
+    () =>
+      new UploadPartCommand({
+        Bucket: getBucket(),
+        Key: key,
+        UploadId: uploadId,
+        PartNumber: partNumber,
+        Body: body,
+      })
   )
   if (!response.ETag) {
     throw new Error('S3 did not return an ETag for the uploaded part')
@@ -276,18 +292,19 @@ export const completeMultipartUpload = async (
   uploadId: string,
   parts: { partNumber: number; etag: string }[]
 ): Promise<void> => {
-  await sendS3Command(() =>
-    new CompleteMultipartUploadCommand({
-      Bucket: getBucket(),
-      Key: key,
-      UploadId: uploadId,
-      MultipartUpload: {
-        Parts: parts
-          .slice()
-          .sort((a, b) => a.partNumber - b.partNumber)
-          .map((p) => ({ PartNumber: p.partNumber, ETag: p.etag })),
-      },
-    })
+  await sendS3Command(
+    () =>
+      new CompleteMultipartUploadCommand({
+        Bucket: getBucket(),
+        Key: key,
+        UploadId: uploadId,
+        MultipartUpload: {
+          Parts: parts
+            .slice()
+            .sort((a, b) => a.partNumber - b.partNumber)
+            .map((p) => ({ PartNumber: p.partNumber, ETag: p.etag })),
+        },
+      })
   )
 }
 
@@ -295,11 +312,12 @@ export const abortMultipartUpload = async (
   key: string,
   uploadId: string
 ): Promise<void> => {
-  await sendS3Command(() =>
-    new AbortMultipartUploadCommand({
-      Bucket: getBucket(),
-      Key: key,
-      UploadId: uploadId,
-    })
+  await sendS3Command(
+    () =>
+      new AbortMultipartUploadCommand({
+        Bucket: getBucket(),
+        Key: key,
+        UploadId: uploadId,
+      })
   )
 }

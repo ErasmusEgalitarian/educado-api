@@ -6,6 +6,7 @@ export type ActivityType =
   | 'true_false'
   | 'text_reading'
   | 'multiple_choice'
+  | 'image_association'
 
 export class Activity extends Model {
   declare id: string
@@ -47,7 +48,8 @@ Activity.init(
         'video_pause',
         'true_false',
         'text_reading',
-        'multiple_choice'
+        'multiple_choice',
+        'image_association'
       ),
       allowNull: false,
     },

@@ -5,6 +5,7 @@ import {
   registerStudent,
   loginByDevice,
   loginByEmail,
+  loginByPhone,
 } from '../../application/student/student-service'
 
 const router = Router()
@@ -59,6 +60,24 @@ router.post('/device-login', async (req: Request, res: Response) => {
     }
 
     const result = await loginByDevice(deviceId.trim())
+    return res.status(200).json(result)
+  } catch (error) {
+    return handleError(req, res, error)
+  }
+})
+
+router.post('/phone-login', async (req: Request, res: Response) => {
+  try {
+    const { phone } = req.body as { phone?: string }
+
+    if (!phone || typeof phone !== 'string' || phone.trim() === '') {
+      return res.status(422).json({
+        code: 'VALIDATION_ERROR',
+        fieldErrors: { phone: 'REQUIRED' },
+      })
+    }
+
+    const result = await loginByPhone(phone.trim())
     return res.status(200).json(result)
   } catch (error) {
     return handleError(req, res, error)

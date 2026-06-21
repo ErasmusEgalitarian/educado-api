@@ -36,11 +36,13 @@ jest.mock('../../../models/index', () => ({
 import {
   registerStudent,
   loginByDevice,
+  loginByPhone,
   getStudentProfile,
   updateStudentProfile,
   deleteStudentAccount,
 } from '../student-service'
 import { AppError } from '../../common/app-error'
+import { UniqueConstraintError } from 'sequelize'
 import { User } from '../../../models/index'
 
 const MockUser = User as unknown as {
@@ -66,6 +68,7 @@ describe('registerStudent', () => {
     const result = await registerStudent({
       firstName: 'João',
       lastName: 'Silva',
+      phone: '11999998888',
     })
 
     expect(result.accessToken).toBeDefined()
@@ -77,6 +80,10 @@ describe('registerStudent', () => {
     expect(createCall.status).toBe('APPROVED')
     expect(createCall.firstName).toBe('João')
     expect(createCall.lastName).toBe('Silva')
+    expect(createCall.phone).toBe('11999998888')
+    // E-mail is an internal placeholder, never collected from the student.
+    expect(createCall.email).toMatch(/@local$/)
+    expect(createCall.emailNormalized).toMatch(/@local$/)
   })
 
   it('should pass optional fields to User.create', async () => {
@@ -91,17 +98,71 @@ describe('registerStudent', () => {
     await registerStudent({
       firstName: 'Maria',
       lastName: 'Santos',
-      email: 'maria@test.com',
       phone: '11999998888',
       dateOfBirth: '1995-03-20',
       deviceId: 'device-123',
     })
 
     const createCall = MockUser.create.mock.calls[0][0]
-    expect(createCall.email).toBe('maria@test.com')
     expect(createCall.phone).toBe('11999998888')
     expect(createCall.dateOfBirth).toBe('1995-03-20')
     expect(createCall.deviceId).toBe('device-123')
+  })
+
+  it('should throw 409 PHONE_ALREADY_EXISTS on unique conflict', async () => {
+    MockUser.create.mockRejectedValue(new UniqueConstraintError({ errors: [] }))
+
+    await expect(
+      registerStudent({
+        firstName: 'João',
+        lastName: 'Silva',
+        phone: '11999998888',
+      })
+    ).rejects.toMatchObject({
+      statusCode: 409,
+      payload: { code: 'PHONE_ALREADY_EXISTS' },
+    })
+  })
+})
+
+describe('loginByPhone', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('should return accessToken when phone is found', async () => {
+    const mockUser = {
+      id: 'student-uuid-1',
+      firstName: 'João',
+      lastName: 'Silva',
+      update: jest.fn(),
+    }
+
+    MockUser.findOne.mockResolvedValue(mockUser)
+
+    const result = await loginByPhone('11999998888')
+
+    expect(result.accessToken).toBeDefined()
+    expect(result.user.id).toBe('student-uuid-1')
+    expect(MockUser.findOne).toHaveBeenCalledWith({
+      where: { phone: '11999998888', role: 'STUDENT' },
+    })
+    expect(mockUser.update).toHaveBeenCalledWith({
+      lastLoginAt: expect.any(Date),
+    })
+  })
+
+  it('should throw 404 ACCOUNT_NOT_FOUND when phone is not found', async () => {
+    MockUser.findOne.mockResolvedValue(null)
+
+    try {
+      await loginByPhone('00000000000')
+      throw new Error('should have thrown')
+    } catch (error) {
+      expect(error).toBeInstanceOf(AppError)
+      expect((error as AppError).statusCode).toBe(404)
+      expect((error as AppError).payload.code).toBe('ACCOUNT_NOT_FOUND')
+    }
   })
 })
 

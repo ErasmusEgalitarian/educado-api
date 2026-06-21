@@ -30,25 +30,28 @@ const signStudentToken = (userId: string): string => {
 export const registerStudent = async (input: StudentRegistrationInput) => {
   const passwordHash = await hashPassword(generateRandomPassword())
 
+  // Students authenticate by phone; e-mail is not collected. We still generate
+  // an internal placeholder address to satisfy the (shared) User model, which
+  // is invisible to the student.
+  const placeholderEmail = `student-${randomBytes(8).toString('hex')}@local`
+
   let user
   try {
     user = await User.create({
       firstName: input.firstName,
       lastName: input.lastName,
-      email: input.email ?? `student-${randomBytes(8).toString('hex')}@local`,
-      emailNormalized:
-        input.email?.toLowerCase().trim() ??
-        `student-${randomBytes(8).toString('hex')}@local`,
+      email: placeholderEmail,
+      emailNormalized: placeholderEmail,
       passwordHash,
       status: 'APPROVED',
       role: 'STUDENT',
-      phone: input.phone ?? null,
+      phone: input.phone,
       dateOfBirth: input.dateOfBirth ?? null,
       deviceId: input.deviceId ?? null,
     })
   } catch (error) {
     if (error instanceof UniqueConstraintError) {
-      throw new AppError(409, { code: 'EMAIL_ALREADY_EXISTS' })
+      throw new AppError(409, { code: 'PHONE_ALREADY_EXISTS' })
     }
     throw error
   }
@@ -70,6 +73,31 @@ export const loginByEmail = async (email: string) => {
 
   const user = await User.findOne({
     where: { emailNormalized, role: 'STUDENT' },
+  })
+
+  if (!user) {
+    throw new AppError(404, { code: 'ACCOUNT_NOT_FOUND' })
+  }
+
+  const accessToken = signStudentToken(user.id)
+
+  await user.update({ lastLoginAt: new Date() })
+
+  return {
+    accessToken,
+    user: {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    },
+  }
+}
+
+export const loginByPhone = async (phone: string) => {
+  const normalizedPhone = phone.trim()
+
+  const user = await User.findOne({
+    where: { phone: normalizedPhone, role: 'STUDENT' },
   })
 
   if (!user) {

@@ -46,7 +46,7 @@ export const listPublicCourses = async (filters: CatalogFilters) => {
       include: [
         [
           literal(
-            '(SELECT COUNT(*) FROM enrollments WHERE enrollments.course_id = course.id AND enrollments.status = \'ACTIVE\')'
+            "(SELECT COUNT(*) FROM enrollments WHERE enrollments.course_id = course.id AND enrollments.status = 'ACTIVE')"
           ),
           'enrollmentCount',
         ],

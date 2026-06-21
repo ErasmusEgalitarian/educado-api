@@ -11,6 +11,7 @@ jest.mock('../../../models/index', () => ({
   Course: {
     findOne: jest.fn(),
     findByPk: jest.fn(),
+    update: jest.fn(),
   },
   Enrollment: {
     findOne: jest.fn(),
@@ -22,10 +23,27 @@ jest.mock('../../../models/index', () => ({
     findOne: jest.fn(),
     findAll: jest.fn(),
     findOrCreate: jest.fn(),
+    destroy: jest.fn(),
   },
-  SectionProgress: {},
+  SectionProgress: {
+    destroy: jest.fn(),
+  },
   Section: {
     count: jest.fn(),
+  },
+  PointsLedger: {
+    findAll: jest.fn(),
+    destroy: jest.fn(),
+  },
+  StudentStats: {
+    findOne: jest.fn(),
+  },
+  Certificate: {
+    destroy: jest.fn(),
+  },
+  CourseReview: {
+    findOne: jest.fn(),
+    destroy: jest.fn(),
   },
   Tag: {},
   CourseTag: {},
@@ -33,7 +51,12 @@ jest.mock('../../../models/index', () => ({
 
 import { enrollStudent, dropEnrollment } from '../enrollment-service'
 import { AppError } from '../../common/app-error'
-import { Course, Enrollment, CourseProgress } from '../../../models/index'
+import {
+  Course,
+  Enrollment,
+  CourseProgress,
+  PointsLedger,
+} from '../../../models/index'
 
 const MockCourse = Course as unknown as {
   findOne: jest.Mock
@@ -46,6 +69,10 @@ const MockEnrollment = Enrollment as unknown as {
 }
 const MockCourseProgress = CourseProgress as unknown as {
   findOrCreate: jest.Mock
+  findAll: jest.Mock
+  findOne: jest.Mock
+}
+const MockPointsLedger = PointsLedger as unknown as {
   findAll: jest.Mock
 }
 
@@ -128,11 +155,16 @@ describe('dropEnrollment', () => {
       update: jest.fn(),
     }
     MockEnrollment.findOne.mockResolvedValue(mockEnrollment)
+    MockPointsLedger.findAll.mockResolvedValue([])
+    MockCourseProgress.findOne.mockResolvedValue(null)
 
     const result = await dropEnrollment('user-1', 'course-1')
 
     expect(result.status).toBe('DROPPED')
-    expect(mockEnrollment.update).toHaveBeenCalledWith({ status: 'DROPPED' })
+    expect(mockEnrollment.update).toHaveBeenCalledWith(
+      { status: 'DROPPED' },
+      { transaction: { LOCK: {} } }
+    )
   })
 
   it('should throw 404 when enrollment not found', async () => {

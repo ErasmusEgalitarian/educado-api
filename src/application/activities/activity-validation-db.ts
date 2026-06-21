@@ -5,6 +5,7 @@ type DbActivityType =
   | 'true_false'
   | 'text_reading'
   | 'multiple_choice'
+  | 'image_association'
 
 const MEDIA_ID_REGEX = /^[a-f\d]{24}$/i
 const UUID_REGEX =
@@ -37,7 +38,8 @@ const isDbType = (value: unknown): value is DbActivityType => {
     value === 'video_pause' ||
     value === 'true_false' ||
     value === 'text_reading' ||
-    value === 'multiple_choice'
+    value === 'multiple_choice' ||
+    value === 'image_association'
   )
 }
 

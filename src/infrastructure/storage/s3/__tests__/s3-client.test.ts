@@ -14,27 +14,21 @@ jest.mock('@aws-sdk/client-s3', () => {
     DeleteObjectCommand: jest
       .fn()
       .mockImplementation((input) => ({ _type: 'DeleteObject', ...input })),
-    CreateMultipartUploadCommand: jest
-      .fn()
-      .mockImplementation((input) => ({
-        _type: 'CreateMultipartUpload',
-        ...input,
-      })),
+    CreateMultipartUploadCommand: jest.fn().mockImplementation((input) => ({
+      _type: 'CreateMultipartUpload',
+      ...input,
+    })),
     UploadPartCommand: jest
       .fn()
       .mockImplementation((input) => ({ _type: 'UploadPart', ...input })),
-    CompleteMultipartUploadCommand: jest
-      .fn()
-      .mockImplementation((input) => ({
-        _type: 'CompleteMultipartUpload',
-        ...input,
-      })),
-    AbortMultipartUploadCommand: jest
-      .fn()
-      .mockImplementation((input) => ({
-        _type: 'AbortMultipartUpload',
-        ...input,
-      })),
+    CompleteMultipartUploadCommand: jest.fn().mockImplementation((input) => ({
+      _type: 'CompleteMultipartUpload',
+      ...input,
+    })),
+    AbortMultipartUploadCommand: jest.fn().mockImplementation((input) => ({
+      _type: 'AbortMultipartUpload',
+      ...input,
+    })),
     HeadObjectCommand: jest
       .fn()
       .mockImplementation((input) => ({ _type: 'HeadObject', ...input })),

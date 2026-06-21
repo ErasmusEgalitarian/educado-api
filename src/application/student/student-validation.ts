@@ -3,8 +3,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export type StudentRegistrationInput = {
   firstName: string
   lastName: string
-  email?: string
-  phone?: string
+  phone: string
   dateOfBirth?: string
   deviceId?: string
 }
@@ -42,20 +41,12 @@ export const validateStudentRegistration = (
     fieldErrors.lastName = 'LENGTH_INVALID'
   }
 
-  let email: string | undefined
-  if (body.email !== undefined && body.email !== null && body.email !== '') {
-    email = normalizeText(body.email)
-    if (!EMAIL_REGEX.test(email)) {
-      fieldErrors.email = 'FORMAT_INVALID'
-    }
-  }
-
-  let phone: string | undefined
-  if (body.phone !== undefined && body.phone !== null && body.phone !== '') {
-    phone = normalizeText(body.phone)
-    if (phone.length < 8 || phone.length > 20) {
-      fieldErrors.phone = 'LENGTH_INVALID'
-    }
+  // Phone is the student's login key, so it is required on registration.
+  const phone = normalizeText(body.phone)
+  if (phone.length === 0) {
+    fieldErrors.phone = 'REQUIRED'
+  } else if (phone.length < 8 || phone.length > 20) {
+    fieldErrors.phone = 'LENGTH_INVALID'
   }
 
   let dateOfBirth: string | undefined
@@ -93,8 +84,7 @@ export const validateStudentRegistration = (
     data: {
       firstName,
       lastName,
-      ...(email !== undefined ? { email } : {}),
-      ...(phone !== undefined ? { phone } : {}),
+      phone,
       ...(dateOfBirth !== undefined ? { dateOfBirth } : {}),
       ...(deviceId !== undefined ? { deviceId } : {}),
     },

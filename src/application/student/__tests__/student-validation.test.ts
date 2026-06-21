@@ -7,6 +7,7 @@ describe('validateStudentRegistration', () => {
   const validPayload = {
     firstName: 'João',
     lastName: 'Silva',
+    phone: '11999998888',
   }
 
   describe('happy path', () => {
@@ -15,19 +16,17 @@ describe('validateStudentRegistration', () => {
       expect(result.data).not.toBeNull()
       expect(result.data?.firstName).toBe('João')
       expect(result.data?.lastName).toBe('Silva')
+      expect(result.data?.phone).toBe('11999998888')
       expect(Object.keys(result.fieldErrors)).toHaveLength(0)
     })
 
     it('should accept all optional fields', () => {
       const result = validateStudentRegistration({
         ...validPayload,
-        email: 'joao@example.com',
-        phone: '11999998888',
         dateOfBirth: '1990-01-15',
         deviceId: 'device-abc-123',
       })
       expect(result.data).not.toBeNull()
-      expect(result.data?.email).toBe('joao@example.com')
       expect(result.data?.phone).toBe('11999998888')
       expect(result.data?.dateOfBirth).toBe('1990-01-15')
       expect(result.data?.deviceId).toBe('device-abc-123')
@@ -37,18 +36,27 @@ describe('validateStudentRegistration', () => {
       const result = validateStudentRegistration({
         firstName: '  João  ',
         lastName: '  Silva  ',
+        phone: '  11999998888  ',
       })
       expect(result.data?.firstName).toBe('João')
       expect(result.data?.lastName).toBe('Silva')
+      expect(result.data?.phone).toBe('11999998888')
     })
 
     it('should not include optional fields when not provided', () => {
       const result = validateStudentRegistration(validPayload)
       expect(result.data).not.toBeNull()
-      expect(result.data).not.toHaveProperty('email')
-      expect(result.data).not.toHaveProperty('phone')
       expect(result.data).not.toHaveProperty('dateOfBirth')
       expect(result.data).not.toHaveProperty('deviceId')
+    })
+
+    it('should not accept email on registration', () => {
+      const result = validateStudentRegistration({
+        ...validPayload,
+        email: 'joao@example.com',
+      })
+      expect(result.data).not.toBeNull()
+      expect(result.data).not.toHaveProperty('email')
     })
   })
 
@@ -87,33 +95,24 @@ describe('validateStudentRegistration', () => {
     })
   })
 
-  describe('email validation', () => {
-    it('should return FORMAT_INVALID for invalid email', () => {
-      const result = validateStudentRegistration({
-        ...validPayload,
-        email: 'not-an-email',
-      })
-      expect(result.fieldErrors.email).toBe('FORMAT_INVALID')
-    })
-
-    it('should accept valid email', () => {
-      const result = validateStudentRegistration({
-        ...validPayload,
-        email: 'test@example.com',
-      })
-      expect(result.data?.email).toBe('test@example.com')
-    })
-
-    it('should skip email validation when null', () => {
-      const result = validateStudentRegistration({
-        ...validPayload,
-        email: null,
-      })
-      expect(result.fieldErrors.email).toBeUndefined()
-    })
-  })
-
   describe('phone validation', () => {
+    it('should return REQUIRED when phone is missing', () => {
+      const result = validateStudentRegistration({
+        firstName: 'João',
+        lastName: 'Silva',
+      })
+      expect(result.fieldErrors.phone).toBe('REQUIRED')
+      expect(result.data).toBeNull()
+    })
+
+    it('should return REQUIRED when phone is empty', () => {
+      const result = validateStudentRegistration({
+        ...validPayload,
+        phone: '   ',
+      })
+      expect(result.fieldErrors.phone).toBe('REQUIRED')
+    })
+
     it('should return LENGTH_INVALID when phone is too short', () => {
       const result = validateStudentRegistration({
         ...validPayload,

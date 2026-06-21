@@ -38,6 +38,29 @@ describe('validateDbActivityPayload', () => {
       expect(result.data?.correctAnswer).toBe(1)
       expect(result.data?.imageMediaId).toBe(VALID_MONGO_ID)
     })
+
+    it('should accept a valid image_association payload', () => {
+      const result = validateDbActivityPayload({
+        ...validPayload,
+        type: 'image_association',
+        title: 'Associe a palavra',
+        question: 'Qual palavra corresponde a imagem?',
+        options: ['Gato', 'Cachorro', 'Pato', 'Peixe'],
+        correctAnswer: 0,
+        imageMediaId: VALID_UUID,
+      })
+      expect(result.data).not.toBeNull()
+      expect(Object.keys(result.fieldErrors)).toHaveLength(0)
+      expect(result.data?.type).toBe('image_association')
+      expect(result.data?.options).toEqual([
+        'Gato',
+        'Cachorro',
+        'Pato',
+        'Peixe',
+      ])
+      expect(result.data?.correctAnswer).toBe(0)
+      expect(result.data?.imageMediaId).toBe(VALID_UUID)
+    })
   })
 
   describe('required fields', () => {
@@ -65,13 +88,16 @@ describe('validateDbActivityPayload', () => {
   })
 
   describe('type validation', () => {
-    it.each(['video_pause', 'true_false', 'text_reading', 'multiple_choice'])(
-      'should accept type "%s"',
-      (type) => {
-        const result = validateDbActivityPayload({ ...validPayload, type })
-        expect(result.fieldErrors.type).toBeUndefined()
-      }
-    )
+    it.each([
+      'video_pause',
+      'true_false',
+      'text_reading',
+      'multiple_choice',
+      'image_association',
+    ])('should accept type "%s"', (type) => {
+      const result = validateDbActivityPayload({ ...validPayload, type })
+      expect(result.fieldErrors.type).toBeUndefined()
+    })
 
     it('should return INVALID for unknown type', () => {
       const result = validateDbActivityPayload({
@@ -135,7 +161,10 @@ describe('validateDbActivityPayload', () => {
     })
 
     it('should accept null title', () => {
-      const result = validateDbActivityPayload({ ...validPayload, title: null })
+      const result = validateDbActivityPayload({
+        ...validPayload,
+        title: null,
+      })
       expect(result.fieldErrors.title).toBeUndefined()
       expect(result.data?.title).toBeNull()
     })

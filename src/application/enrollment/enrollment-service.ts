@@ -323,7 +323,11 @@ export const dropEnrollment = async (userId: string, courseId: string) => {
     const wasCompleted = enrollment.status === 'COMPLETED'
 
     // 3. Update StudentStats
-    if (totalPointsToReverse > 0 || completedSectionsCount > 0 || wasCompleted) {
+    if (
+      totalPointsToReverse > 0 ||
+      completedSectionsCount > 0 ||
+      wasCompleted
+    ) {
       const stats = await StudentStats.findOne({
         where: { userId },
         transaction,
@@ -341,9 +345,7 @@ export const dropEnrollment = async (userId: string, courseId: string) => {
             ),
             coursesCompleted: Math.max(
               0,
-              wasCompleted
-                ? stats.coursesCompleted - 1
-                : stats.coursesCompleted
+              wasCompleted ? stats.coursesCompleted - 1 : stats.coursesCompleted
             ),
           },
           { transaction }

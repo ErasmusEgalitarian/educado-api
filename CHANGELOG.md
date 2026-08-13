@@ -32,7 +32,7 @@ and this project adheres to
   behavior in deployment, the previously undocumented `REDIS_PASSWORD`
   variable, the production API URL, and the license section.
 
-## [1.0.1] - 2026-08-13
+## [1.0.1] - 2026-05-04
 
 First documented release of the Educado backend REST API, an educational
 platform for waste pickers in Brazil built as a partnership between the
@@ -52,7 +52,7 @@ University of Brasilia (UnB) and Aalborg University.
 - Course catalog: courses, sections and activities, including video, text,
   multiple choice, true or false, and image association activities.
 - Enrollment, course and section progress, experience points, leaderboard, and
-  certificate issuing as PDF with a QR code verification endpoint.
+  certificate issuing as PDF with a public verification endpoint.
 - Media pipeline on MinIO or any S3 compatible storage, with image and video
   upload, metadata, presigned access and range request streaming for large
   videos.
@@ -63,8 +63,10 @@ University of Brasilia (UnB) and Aalborg University.
   configurable CORS origins.
 - OpenAPI documentation served by Swagger UI at `GET /docs`.
 - Jest and ts-jest test suite with supertest for HTTP level tests.
-- ESLint 9 flat config (google base plus prettier) and a `npm run lint`,
-  `npm test`, `npx tsc --noEmit` quality gate.
+- ESLint 9 flat config composing `@eslint/js` recommended, `typescript-eslint`
+  recommended and `eslint-config-prettier`, with Prettier enforced as a rule
+  through `eslint-plugin-prettier`, and a `npm run lint`, `npm test`,
+  `npx tsc --noEmit` quality gate.
 - Docker Compose file for local infrastructure (PostgreSQL, Redis, MinIO and a
   one-shot job that creates the `educado-media` bucket).
 - Deployment on Coolify with Nixpacks (`nixpacks.toml`) and a `Procfile`

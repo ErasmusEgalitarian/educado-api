@@ -96,8 +96,8 @@ Keep `NODE_ENV=development` locally.
 
 ## Branching and pull requests
 
-The default branch of this repository is `master`. There is also a long lived
-`dev` branch used to integrate work before it reaches `master`.
+The default branch of this repository is `main`. There is also a long lived
+`dev` branch used to integrate work before it reaches `main`.
 
 1. Create your branch from `dev` unless a maintainer tells you otherwise.
 2. Name it with a type prefix and a short kebab-case description:
@@ -108,7 +108,7 @@ The default branch of this repository is `master`. There is also a long lived
 3. Keep the branch focused. One concern per pull request.
 4. Rebase or merge the target branch into yours before asking for review, so the
    diff is clean.
-5. Open the pull request against `dev` (or `master` for a release or hotfix,
+5. Open the pull request against `dev` (or `main` for a release or hotfix,
    when a maintainer asks for it) and fill in the pull request template.
 6. Pull requests need at least one approving review. Do not merge your own pull
    request without one.
@@ -153,7 +153,7 @@ Run all three before pushing. This is the same checklist maintainers run on
 review:
 
 ```bash
-npm run lint       # ESLint 9 (flat config, google base + prettier)
+npm run lint       # ESLint 9 (flat config: @eslint/js + typescript-eslint + eslint-config-prettier)
 npm test           # Jest + ts-jest
 npx tsc --noEmit   # TypeScript type check without emitting
 ```

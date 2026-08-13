@@ -5017,7 +5017,7 @@ export const swaggerDocument = {
         tags: ['Student Certificates'],
         summary: 'Baixar certificado em PDF',
         description:
-          'Gera e retorna o PDF do certificado. Inclui dados do curso, nome do aluno, QR code de verificação.',
+          'Gera e retorna o PDF do certificado. Inclui dados do curso, nome do aluno e o codigo de verificacao.',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -5053,7 +5053,7 @@ export const swaggerDocument = {
         tags: ['Student Certificates'],
         summary: 'Verificar certificado por código (público)',
         description:
-          'Endpoint público para verificar a autenticidade de um certificado via QR code.',
+          'Endpoint publico para verificar a autenticidade de um certificado pelo codigo impresso nele.',
         parameters: [
           {
             name: 'code',

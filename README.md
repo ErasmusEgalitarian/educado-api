@@ -25,7 +25,9 @@ certificados.
 - **JWT** (autenticacao)
 - **bcryptjs** (hashing de senhas)
 - **Jest** + ts-jest + supertest (testes)
-- **ESLint 9** (flat config, base google + prettier)
+- **ESLint 9** (flat config: `@eslint/js` recomendado + `typescript-eslint`
+  recomendado + `eslint-config-prettier`, com o Prettier rodando como regra via
+  `eslint-plugin-prettier`)
 - **Deploy**: Coolify + Nixpacks (`nixpacks.toml`, sem Dockerfile), processos
   declarados no `Procfile`
 
@@ -242,7 +244,7 @@ DELETE /activities/:id                 # Deletar
 
 ```
 POST   /media/images               # Upload imagem (max 10MB)
-POST   /media/videos               # Upload video (max 500MB)
+POST   /media/videos               # Upload video (max 100 MB)
 GET    /media/:id/stream           # Stream com range request (aceita ?token=jwt)
 GET    /media/images/:id           # Metadados imagem
 GET    /media/videos/:id           # Metadados video
@@ -251,6 +253,13 @@ PUT    /media/images/:id/metadata  # Atualizar metadados
 DELETE /media/images/:id           # Deletar imagem
 DELETE /media/videos/:id           # Deletar video
 ```
+
+O limite de 100 MB do upload direto vem do multer em
+`src/routes/media/upload-video.ts` (`100 * 1024 * 1024`) e conversa com o teto
+de body do proxy reverso na frente da API (Cloudflare Free tambem corta em
+100 MB). Subir um sem subir o outro nao adianta: o menor dos dois manda. Para
+arquivos maiores existe o fluxo de upload em partes, com cada parte limitada a
+60 MB.
 
 ### Administracao (`/admin`)
 
@@ -272,7 +281,7 @@ POST   /admin/registrations/:userId/reject  # Rejeitar
 /catalog                 # Catalogo publico de cursos
 /leaderboard             # Ranking / gamificacao
 /progress                # Progresso de cursos
-/certificates            # Certificados + verificacao publica (QR code)
+/certificates            # Certificados + verificacao publica por codigo
 /tags                    # CRUD de tags
 /institutions            # CRUD de instituicoes
 /account/email-verification/send     # Enviar codigo de verificacao
@@ -319,21 +328,34 @@ FRONTEND_ORIGIN=http://localhost:3000
 
 ### Referencia
 
+A coluna "Obrigatoria" e sobre o que o codigo realmente exige, nao sobre o que
+convem configurar. Quase toda variavel aqui tem default no codigo: a API **sobe**
+sem elas. O que quebra e o comportamento em producao, silenciosamente. Leia a
+coluna de descricao antes de decidir o que deixar de fora.
+
 | Variavel | Obrigatoria | Descricao |
 |----------|-------------|-----------|
-| `NODE_ENV` | sim | `production` em deploy. Qualquer outro valor e tratado como nao-producao (ver aviso abaixo) |
+| `NODE_ENV` | nao (mas defina em deploy) | Sem valor, a API sobe em modo nao-producao: CORS liberado, `POSTGRES_URI_DEV` e segredo de JWT de desenvolvimento. Em deploy tem que ser exatamente `production` (ver aviso abaixo) |
 | `PORT` | nao | Porta HTTP da API. Default no codigo: 5000; o `.env.example` usa 5001 |
 | `POSTGRES_URI` | so em producao | String de conexao lida **apenas** quando `NODE_ENV === 'production'` |
 | `POSTGRES_URI_DEV` | fora de producao | String de conexao usada quando `NODE_ENV` nao e `production` |
-| `ACCESS_TOKEN_SECRET` | sim | Segredo de assinatura do JWT. Gerar com `openssl rand -base64 48` |
-| `S3_ENDPOINT` | sim | Endpoint do MinIO/S3. Local: `http://localhost:9002` |
-| `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET` | sim | Credenciais e bucket de midia |
-| `EMAIL_API_KEY` | sim | API key do Resend |
-| `EMAIL_FROM` | sim | Remetente dos emails transacionais |
-| `REDIS_HOST` | sim | Host do Redis. Default no codigo: `127.0.0.1` |
-| `REDIS_PORT` | sim | Porta do Redis. Default no codigo: `6379`; local via compose: `6380` |
+| `ACCESS_TOKEN_SECRET` | so em producao | Segredo de assinatura do JWT (`src/config/jwt.ts`). Fora de producao, se ausente ou vazia, cai para o literal **`'dev-insecure-secret-change-me'`** e apenas loga um warning: tokens continuam sendo emitidos e aceitos. Em `NODE_ENV=production` a ausencia vira erro 500 (`MISSING_ACCESS_TOKEN_SECRET`). Gerar com `openssl rand -base64 48` |
+| `JWT_SECRET` | nao | Alias de `ACCESS_TOKEN_SECRET`, lido no mesmo ponto (`src/config/jwt.ts`). `ACCESS_TOKEN_SECRET` tem precedencia; `JWT_SECRET` so e usado se a primeira estiver ausente ou vazia |
+| `S3_ENDPOINT` | nao | Endpoint unico do MinIO/S3. Default no codigo: `http://localhost:9000`. Local via compose: `http://localhost:9002` |
+| `S3_ENDPOINTS` | nao | Lista de endpoints separados por virgula, com failover em ordem (`src/infrastructure/storage/s3/s3-client.ts:50`). **Tem precedencia sobre `S3_ENDPOINT`**: se `S3_ENDPOINTS` estiver definida, `S3_ENDPOINT` e ignorada por completo |
+| `S3_REGION` | nao | Regiao do cliente S3. Default no codigo: `us-east-1` |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY` | nao | Credenciais do S3/MinIO. Default no codigo: `minioadmin` nas duas. Trocar em producao |
+| `S3_BUCKET` | nao | Bucket de midia. Default no codigo: `educado-media` |
+| `S3_MAX_ATTEMPTS` | nao | Tentativas por operacao S3 antes de desistir. Default no codigo: `3`. Valor invalido ou menor que 1 volta para o default |
+| `S3_RETRY_DELAY_MS` | nao | Espera entre tentativas, em ms. Default no codigo: `150`. Valor invalido ou negativo volta para o default |
+| `EMAIL_API_KEY` | nao para subir, sim para enviar | API key do Resend. Lida sob demanda em `src/infrastructure/email/resend-email-provider.ts`: a API sobe sem ela e so estoura no primeiro envio de email (verificacao de cadastro, reset de senha) |
+| `EMAIL_FROM` | nao para subir, sim para enviar | Remetente dos emails transacionais. Mesmo comportamento: falha no envio, nao no boot |
+| `REDIS_HOST` | nao | Host do Redis. Default no codigo: `127.0.0.1` |
+| `REDIS_PORT` | nao | Porta do Redis. Default no codigo: `6379`; local via compose: `6380` |
 | `REDIS_PASSWORD` | quando o Redis tem senha | Lida em `src/infrastructure/queue/redis.ts` e repassada a conexao do BullMQ. Sem ela, a API e o worker nao autenticam num Redis protegido |
-| `FRONTEND_ORIGIN` | sim em producao | Origens permitidas no CORS, separadas por virgula. Em producao a lista e aplicada de fato; fora de producao o CORS e liberado |
+| `FRONTEND_ORIGIN` | nao (mas configure em producao) | Origens permitidas no CORS, separadas por virgula. Se ausente, `src/index.ts:45-56` cai para uma lista fixa de localhost (`localhost:3000`, `127.0.0.1:3000`, `localhost:5173`, `127.0.0.1:5173`) **inclusive em producao**. O efeito e uma producao que rejeita o proprio frontend em vez de falhar no boot |
+| `SYSTEM_REVIEWER_EMAIL` | nao | Email do usuario-sistema usado como revisor automatico na verificacao de cadastro (`src/application/verification/email-verification-service.ts:22-23`). Default no codigo: `system@educado.local` |
+| `CERTIFICATE_VERIFICATION_URL` | nao (mas configure em producao) | URL base impressa no certificado em PDF para verificacao publica (`src/application/certificates/certificate-pdf-service.ts:7-9`). Default no codigo: `https://educado.com/certificates/verify`, **dominio que nao pertence a este projeto**. Sem configurar, todo certificado emitido aponta para fora: aponte para o `/certificates/verify` da sua propria instalacao |
 
 ### Aviso: `NODE_ENV` precisa ser exatamente `production` em deploy
 
@@ -420,7 +442,7 @@ https://api-educado.tominho.com/docs/.
 
 Leia o [CONTRIBUTING.md](CONTRIBUTING.md) (setup, fluxo de branch e PR,
 Conventional Commits, gate de lint/test/typecheck) e o
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). O branch default e `master`; o
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). O branch default e `main`; o
 desenvolvimento e integrado em `dev`.
 
 Historico de mudancas: [CHANGELOG.md](CHANGELOG.md).

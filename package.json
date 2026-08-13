@@ -1,7 +1,7 @@
 {
-  "name": "fast-forward-dev-server",
+  "name": "educado-api",
   "version": "1.0.1",
-  "description": "",
+  "description": "Backend REST API for Educado, an educational platform for waste pickers in Brazil",
   "main": "build/index.js",
   "scripts": {
     "start": "node build/index.js",
@@ -18,7 +18,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=20.0.0"
   },

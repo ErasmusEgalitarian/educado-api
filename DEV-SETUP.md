@@ -31,12 +31,16 @@ sudo docker compose up -d
 
 Isso sobe:
 
-| Servico    | Porta local | Credenciais             |
-|------------|-------------|-------------------------|
-| PostgreSQL | 5431        | educado / educado       |
-| Redis      | 6379        | sem senha               |
-| MinIO API  | 9000        | minioadmin / minioadmin  |
-| MinIO Console | 9001     | minioadmin / minioadmin  |
+| Servico       | Porta local | Porta no container | Credenciais            |
+|---------------|-------------|--------------------|------------------------|
+| PostgreSQL    | 5431        | 5432               | educado / educado      |
+| Redis         | 6380        | 6379               | sem senha              |
+| MinIO API     | 9002        | 9000               | minioadmin / minioadmin |
+| MinIO Console | 9003        | 9001               | minioadmin / minioadmin |
+
+As portas locais sao as publicadas pelo `docker-compose.yml`. O `.env.example`
+ja aponta para elas (`POSTGRES_URI_DEV` em 5431, `S3_ENDPOINT` em 9002,
+`REDIS_PORT` em 6380).
 
 O bucket `educado-media` e criado automaticamente pelo servico `minio-setup`.
 
@@ -70,7 +74,7 @@ Processa a fila de envio de emails via BullMQ + Redis.
 |-----------------|-------------------------------|
 | API             | http://localhost:5001         |
 | Swagger (docs)  | http://localhost:5001/docs    |
-| MinIO Console   | http://localhost:9001         |
+| MinIO Console   | http://localhost:9003         |
 
 ## Comandos uteis
 

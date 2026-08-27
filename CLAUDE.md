@@ -135,7 +135,7 @@ throw new AppError(statusCode, { code: 'ERROR_CODE', fieldErrors?: {...} })
 6. **Rodar `npm test` antes de considerar mudanca completa**
 
 ### Cobertura Atual
-- 7 suites, 174+ testes passando
+- 31 suites, 506 testes passando (`npx jest`, 2026-08-27)
 - Modulos com 100%: validacoes (curso, registro, atividade, midia), acesso a midia, auth-jwt, password-hasher
 - Meta: 80%+ em statements/lines para application/
 
@@ -151,9 +151,9 @@ npx jest path/to/file.test.ts  # Teste especifico
 ```env
 NODE_ENV=development
 PORT=5001
-POSTGRES_URI_DEV=postgresql://educado:educado@localhost:5432/educado_dev
+POSTGRES_URI_DEV=postgresql://educado:educado@localhost:5431/educado_dev
 ACCESS_TOKEN_SECRET=replace-with-a-strong-secret
-S3_ENDPOINT=http://localhost:9000
+S3_ENDPOINT=http://localhost:9002
 S3_REGION=us-east-1
 S3_ACCESS_KEY=minioadmin
 S3_SECRET_KEY=minioadmin
@@ -161,10 +161,13 @@ S3_BUCKET=educado-media
 EMAIL_API_KEY=re_xxx
 EMAIL_FROM=noreply@educado.com
 REDIS_HOST=localhost
-REDIS_PORT=6379
+REDIS_PORT=6380
 ```
 
-Docker Compose sobrescreve S3_ENDPOINT para `http://minio:9000` (DNS interno).
+As portas acima sao as publicadas no host pelo `docker-compose.yml` (postgres
+5431, MinIO 9002, Redis 6380). Dentro da rede do compose os servicos seguem
+nas portas padrao (`minio:9000`, `redis:6379`), que e o valor usado em deploy.
+A API e o worker rodam no host, nao no compose.
 
 ## Regras de Contribuicao
 
